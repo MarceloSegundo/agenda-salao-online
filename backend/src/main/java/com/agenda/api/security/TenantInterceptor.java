@@ -14,9 +14,12 @@ public class TenantInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String tenantId = request.getHeader(TENANT_HEADER);
-        if (tenantId != null && !tenantId.isEmpty()) {
-            TenantContext.setCurrentTenant(UUID.fromString(tenantId));
+        // Se o JwtAuthenticationFilter já setou o Tenant (em rotas protegidas), não sobrescrevemos.
+        if (TenantContext.getCurrentTenant() == null) {
+            String tenantId = request.getHeader(TENANT_HEADER);
+            if (tenantId != null && !tenantId.isEmpty()) {
+                TenantContext.setCurrentTenant(UUID.fromString(tenantId));
+            }
         }
         return true;
     }

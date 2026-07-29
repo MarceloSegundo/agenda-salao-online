@@ -18,3 +18,11 @@ spring:
 logging:
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - [traceId=%X{traceId:-}] %msg%n"
+
+whatsapp:
+  api-url: ${WHATSAPP_API_URL:http://localhost:3000}
+  enabled: ${WHATSAPP_ENABLED:true}
+
+jwt:
+  secret: ${JWT_SECRET:mySuperSecretKeyThatIsAtLeast32CharactersLongAndVerySecure}
+  expiration: ${JWT_EXPIRATION:86400000}
