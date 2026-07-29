@@ -36,6 +36,8 @@ public class SecurityConfig {
                         // Endpoints públicos
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/tenants/register").permitAll()
+                        // Swagger UI e OpenAPI docs
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Rota de criação de appointment é pública (clientes agendando)
                         .requestMatchers(HttpMethod.POST, "/api/appointments").permitAll()
                         // Qualquer outra rota requer autenticação (painel admin)
