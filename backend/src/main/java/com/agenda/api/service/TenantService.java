@@ -1,6 +1,7 @@
 package com.agenda.api.service;
 
 import com.agenda.api.dto.TenantRegistrationRequest;
+import com.agenda.api.exception.BusinessException;
 import com.agenda.api.model.Tenant;
 import com.agenda.api.model.User;
 import com.agenda.api.repository.TenantRepository;
@@ -25,7 +26,7 @@ public class TenantService {
     @Transactional
     public Tenant registerTenant(TenantRegistrationRequest request) {
         if (userRepository.findByEmail(request.getAdminEmail()).isPresent()) {
-            throw new IllegalArgumentException("O e-mail já está em uso.");
+            throw new BusinessException("O e-mail já está em uso.");
         }
 
         // Criar o Tenant (Salão)
