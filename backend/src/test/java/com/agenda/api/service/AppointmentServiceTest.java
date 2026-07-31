@@ -4,6 +4,8 @@ import com.agenda.api.dto.*;
 import com.agenda.api.exception.BusinessException;
 import com.agenda.api.model.*;
 import com.agenda.api.repository.*;
+import com.agenda.api.security.TenantContext;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -35,6 +38,9 @@ public class AppointmentServiceTest {
     
     @Mock
     private ServiceRepository serviceRepository;
+    
+    @Mock
+    private TenantRepository tenantRepository;
 
     @Mock
     private WhatsAppNotificationService notificationService;
@@ -45,14 +51,23 @@ public class AppointmentServiceTest {
     private Customer customer;
     private Professional professional;
     private com.agenda.api.model.Service service;
-    private AppointmentRequest request;
+    private Tenant tenant;
+    private CreateAppointmentRequest request;
 
+    private final UUID tenantId = UUID.randomUUID();
     private final UUID customerId = UUID.randomUUID();
     private final UUID professionalId = UUID.randomUUID();
     private final UUID serviceId = UUID.randomUUID();
 
     @BeforeEach
     void setUp() {
+        TenantContext.setCurrentTenant(tenantId);
+        
+        tenant = new Tenant();
+        tenant.setId(tenantId);
+        tenant.setOpeningTime(LocalTime.of(8, 0));
+        tenant.setClosingTime(LocalTime.of(18, 0));
+
         customer = new Customer();
         customer.setId(customerId);
         customer.setName("Maria");
@@ -66,15 +81,25 @@ public class AppointmentServiceTest {
         service.setId(serviceId);
         service.setName("Corte");
         service.setPrice(new BigDecimal("50.0"));
+        service.setDurationMinutes(60);
 
         LocalDateTime startTime = LocalDateTime.now().plusDays(1).withHour(10).withMinute(0);
-        LocalDateTime endTime = startTime.plusMinutes(30);
 
-        request = new AppointmentRequest(customerId, professionalId, serviceId, startTime, endTime);
+        request = new CreateAppointmentRequest();
+        request.setCustomerId(customerId);
+        request.setProfessionalId(professionalId);
+        request.setServiceId(serviceId);
+        request.setStartTime(startTime);
+    }
+    
+    @AfterEach
+    void tearDown() {
+        TenantContext.clear();
     }
 
     @Test
     void shouldCreateAppointmentSuccessfully() {
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
         when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
@@ -86,21 +111,23 @@ public class AppointmentServiceTest {
         savedAppointment.setCustomer(customer);
         savedAppointment.setProfessional(professional);
         savedAppointment.setService(service);
-        savedAppointment.setStartTime(request.startTime());
-        savedAppointment.setEndTime(request.endTime());
+        savedAppointment.setStartTime(request.getStartTime());
+        savedAppointment.setEndTime(request.getStartTime().plusMinutes(service.getDurationMinutes()));
         savedAppointment.setStatus(AppointmentStatus.PENDING);
 
         when(appointmentRepository.save(any(Appointment.class))).thenReturn(savedAppointment);
 
-        AppointmentResponse response = appointmentService.create(request);
+        AppointmentResponseDTO response = appointmentService.create(request);
 
         assertNotNull(response);
-        assertEquals(AppointmentStatus.PENDING, response.status());
+        assertEquals(AppointmentStatus.PENDING, response.getStatus());
+        assertEquals(60, response.getDurationMinutes());
         verify(appointmentRepository, times(1)).save(any(Appointment.class));
     }
 
     @Test
     void shouldThrowExceptionWhenTimeOverlaps() {
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
         when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
         when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
         when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
@@ -110,6 +137,38 @@ public class AppointmentServiceTest {
         BusinessException exception = assertThrows(BusinessException.class, () -> appointmentService.create(request));
         
         assertEquals("O profissional já possui um agendamento neste horário.", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenOutsideBusinessHours() {
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
+        when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        
+        // 17:30 with 60m duration ends at 18:30 (outside business hours, closing is 18:00)
+        request.setStartTime(LocalDateTime.now().plusDays(1).withHour(17).withMinute(30));
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> appointmentService.create(request));
+        
+        assertEquals("O horário agendado está fora do horário de funcionamento do salão.", exception.getMessage());
+        verify(appointmentRepository, never()).save(any(Appointment.class));
+    }
+    
+    @Test
+    void shouldThrowExceptionWhenCrossingMidnight() {
+        when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
+        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
+        when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        
+        // Set tenant closing time to next day somehow? Actually, the rule just prevents midnight cross
+        request.setStartTime(LocalDateTime.now().plusDays(1).withHour(23).withMinute(30));
+
+        BusinessException exception = assertThrows(BusinessException.class, () -> appointmentService.create(request));
+        
+        assertEquals("O agendamento não pode ultrapassar a meia-noite.", exception.getMessage());
         verify(appointmentRepository, never()).save(any(Appointment.class));
     }
 }

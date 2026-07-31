@@ -59,9 +59,12 @@ $svcId = $svcResponse.id
 $svcResponse | ConvertTo-Json
 
 Write-Host "`n=== 6. Create Appointment ==="
-$aptBody = "{`"customerId`": `"$custId`", `"professionalId`": `"$profId`", `"serviceId`": `"$svcId`", `"startTime`": `"2026-08-01T10:00:00`", `"endTime`": `"2026-08-01T10:30:00`"}"
+# Calculate a start time in the future (next day at 10:00 AM) to avoid validation errors
+$startTime = (Get-Date).AddDays(1).ToString("yyyy-MM-ddT10:00:00")
+$aptBody = "{`"customerId`": `"$custId`", `"professionalId`": `"$profId`", `"serviceId`": `"$svcId`", `"startTime`": `"$startTime`"}"
 $aptResponse = Invoke-With-Error-Handling -Uri "$baseUrl/appointments" -Method Post -Body $aptBody -Headers $headers
 $aptResponse | ConvertTo-Json
+$aptId = $aptResponse.id
 
 Write-Host "`n=== 7. Get Customer ==="
 $getC = Invoke-With-Error-Handling -Uri "$baseUrl/customers/$custId" -Method Get -Headers $headers
@@ -74,3 +77,12 @@ $getP | ConvertTo-Json
 Write-Host "`n=== 9. Get Service ==="
 $getS = Invoke-With-Error-Handling -Uri "$baseUrl/services/$svcId" -Method Get -Headers $headers
 $getS | ConvertTo-Json
+
+Write-Host "`n=== 10. List Appointments ==="
+$listApt = Invoke-With-Error-Handling -Uri "$baseUrl/appointments" -Method Get -Headers $headers
+$listApt | ConvertTo-Json
+
+Write-Host "`n=== 11. Update Appointment Status ==="
+$statusBody = "{`"status`": `"CONFIRMED`"}"
+$updateApt = Invoke-With-Error-Handling -Uri "$baseUrl/appointments/$aptId/status" -Method Patch -Body $statusBody -Headers $headers
+$updateApt | ConvertTo-Json
