@@ -20,5 +20,8 @@ public record ServiceRequest(
         Integer durationMinutes,
         
         @NotNull(message = "Obrigatório informar se requer pagamento online")
-        Boolean requiresOnlinePayment
+        Boolean requiresOnlinePayment,
+
+        @NotNull(message = "Obrigatório informar se está ativo")
+        Boolean active
 ) {}

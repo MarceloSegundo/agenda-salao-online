@@ -20,6 +20,12 @@ public class Tenant {
 
     private boolean active = true;
 
+    @Column(name = "opening_time")
+    private java.time.LocalTime openingTime = java.time.LocalTime.of(8, 0); // Default 08:00
+
+    @Column(name = "closing_time")
+    private java.time.LocalTime closingTime = java.time.LocalTime.of(18, 0); // Default 18:00
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -40,6 +46,12 @@ public class Tenant {
     
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+    
+    public java.time.LocalTime getOpeningTime() { return openingTime; }
+    public void setOpeningTime(java.time.LocalTime openingTime) { this.openingTime = openingTime; }
+    
+    public java.time.LocalTime getClosingTime() { return closingTime; }
+    public void setClosingTime(java.time.LocalTime closingTime) { this.closingTime = closingTime; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

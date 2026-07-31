@@ -9,5 +9,6 @@ public record ServiceResponse(
         String description,
         BigDecimal price,
         Integer durationMinutes,
-        boolean requiresOnlinePayment
+        boolean requiresOnlinePayment,
+        boolean active
 ) {}

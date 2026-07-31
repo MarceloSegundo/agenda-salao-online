@@ -31,4 +31,21 @@ public class ServiceController {
         ServiceResponse response = serviceService.findById(id);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping
+    public ResponseEntity<java.util.List<ServiceResponse>> findAll() {
+        return ResponseEntity.ok(serviceService.findAll());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ServiceResponse> update(@PathVariable UUID id, @RequestBody @Valid ServiceRequest request) {
+        ServiceResponse response = serviceService.update(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        serviceService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -26,4 +26,14 @@ public class TenantController {
         Tenant tenant = tenantService.registerTenant(request);
         return new ResponseEntity<>(tenant, HttpStatus.CREATED);
     }
+
+    @org.springframework.web.bind.annotation.GetMapping("/me")
+    public ResponseEntity<com.agenda.api.dto.TenantResponse> getCurrentTenant() {
+        return ResponseEntity.ok(tenantService.getCurrentTenant());
+    }
+
+    @org.springframework.web.bind.annotation.PatchMapping("/settings")
+    public ResponseEntity<com.agenda.api.dto.TenantResponse> updateSettings(@Valid @RequestBody com.agenda.api.dto.TenantSettingsRequest request) {
+        return ResponseEntity.ok(tenantService.updateSettings(request));
+    }
 }

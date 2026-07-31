@@ -31,4 +31,21 @@ public class ProfessionalController {
         ProfessionalResponse response = professionalService.findById(id);
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping
+    public ResponseEntity<java.util.List<ProfessionalResponse>> findAll() {
+        return ResponseEntity.ok(professionalService.findAll());
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProfessionalResponse> update(@PathVariable UUID id, @RequestBody @Valid ProfessionalRequest request) {
+        ProfessionalResponse response = professionalService.update(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable UUID id) {
+        professionalService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
 }

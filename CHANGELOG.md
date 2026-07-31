@@ -16,4 +16,12 @@ Este arquivo documenta as implementações e ajustes finos realizados durante o 
 - **Mensagem de Sucesso (Banners)**: Após o cadastro com sucesso, o usuário é redirecionado para a página de Login (`LoginPage`), onde um *banner* ou *toast* visual informa que a conta foi criada com sucesso, garantindo clareza para o usuário.
 - **Prevenção de Enumeração de Usuários**: A interface de login retorna a mensagem genérica *"E-mail ou senha incorretos"* para evitar que usuários mal intencionados descubram se um determinado e-mail está cadastrado ou não.
 
+## Implementações de Interface e Layout (Fase 2)
+
+### Frontend (Mobile-First)
+- **Estrutura Base do Painel (`AppLayout`)**: Criado o layout mestre que envolve as rotas privadas (`/app/*`). Ele garante que o conteúdo principal seja rolável, adicionando um *padding* inteligente para evitar que itens sejam ocultados pela barra inferior.
+- **Navegação (Bottom Tab Bar)**: Substituído o padrão antigo de *Sidebar* (Desktop) por uma *Bottom Tab Bar* (estilo app nativo). Utiliza ícones do pacote `lucide-react`. O componente `BottomTabBar` foi isolado para fácil customização e oferece destaque visual instantâneo para a aba ativa.
+- **Rotas Aninhadas e Placeholders**: O `react-router` foi reconfigurado. A antiga rota isolada `/dashboard` agora faz parte do escopo `/app`. Foram provisionadas páginas provisórias para `Agenda`, `Clientes` e `Configurações`, permitindo a navegação imediata.
+- **Redirecionamento Pós-Login**: Atualizado o fluxo no `LoginPage` para redirecionar o usuário diretamente para `/app` ao invés da antiga URL descontinuada.
+
 ---

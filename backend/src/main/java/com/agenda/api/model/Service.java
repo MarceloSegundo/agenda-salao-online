@@ -24,6 +24,9 @@ public class Service extends BaseTenantEntity {
     @Column(nullable = false)
     private boolean requiresOnlinePayment = false; // Se true, o agendamento só confirma mediante pagamento.
 
+    @Column(nullable = false, columnDefinition = "boolean default true")
+    private boolean active = true; // Para soft delete
+
     // Getters and Setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -39,4 +42,7 @@ public class Service extends BaseTenantEntity {
     
     public boolean isRequiresOnlinePayment() { return requiresOnlinePayment; }
     public void setRequiresOnlinePayment(boolean requiresOnlinePayment) { this.requiresOnlinePayment = requiresOnlinePayment; }
+
+    public boolean isActive() { return active; }
+    public void setActive(boolean active) { this.active = active; }
 }

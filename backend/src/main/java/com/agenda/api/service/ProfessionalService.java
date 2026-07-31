@@ -38,6 +38,36 @@ public class ProfessionalService {
         return mapToResponse(professional);
     }
 
+    @Transactional(readOnly = true)
+    public java.util.List<ProfessionalResponse> findAll() {
+        return professionalRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Transactional
+    public ProfessionalResponse update(UUID id, ProfessionalRequest request) {
+        Professional professional = professionalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado com ID: " + id));
+        
+        professional.setName(request.name());
+        professional.setSpecialization(request.specialization());
+        professional.setActive(request.active());
+        
+        professional = professionalRepository.save(professional);
+        return mapToResponse(professional);
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        Professional professional = professionalRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado com ID: " + id));
+        
+        // Soft delete
+        professional.setActive(false);
+        professionalRepository.save(professional);
+    }
+
     private ProfessionalResponse mapToResponse(Professional professional) {
         return new ProfessionalResponse(
                 professional.getId(),

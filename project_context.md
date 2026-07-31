@@ -31,13 +31,14 @@ As seguintes rotas base estão configuradas em `http://localhost:8080/api`:
 | **Appointment** | Criação e consulta de agendamentos | `POST /appointments` | Sim (JWT) |
 
 ## 5. Próximos Passos (Foco no Frontend)
-A API já está pronta, validada e servindo dados corretamente. Os próximos objetivos para o frontend devem abranger:
-1. **Página de Landing/Cadastro:** Onde um dono de salão fará o seu registro (consumindo `POST /tenants/register`).
-2. **Página de Login:** Para autenticação e armazenamento do token JWT localmente.
-3. **Painel do Salão (Dashboard Privado):** Consumindo as rotas autenticadas enviando o header `Authorization: Bearer <token>` para:
-   - Cadastrar/Listar Clientes.
-   - Cadastrar/Listar Profissionais e Serviços.
-   - Calendário para Agendamentos.
+A API já está pronta, validada e servindo dados corretamente. Os próximos objetivos para o frontend devem abranger (A maior parte já está em andamento/concluída):
+1. **Página de Landing/Cadastro:** Onde um dono de salão fará o seu registro (consumindo `POST /tenants/register`). *(Concluído)*
+2. **Página de Login:** Para autenticação e armazenamento do token JWT localmente. *(Concluído)*
+3. **Painel do Salão (AppLayout):** Consumindo as rotas autenticadas enviando o header `Authorization: Bearer <token>`. A navegação funciona via Bottom Tab Bar dentro do caminho `/app`:
+   - `/app` - Dashboard Principal
+   - `/app/agenda` - Calendário para Agendamentos.
+   - `/app/clientes` - Cadastrar/Listar Clientes.
+   - `/app/configuracoes` - Cadastrar/Listar Profissionais e Serviços.
 
 ## 6. Dicas para a Próxima IA
 - O projeto usa `java.util.UUID` para os IDs principais.

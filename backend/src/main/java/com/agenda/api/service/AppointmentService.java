@@ -5,10 +5,15 @@ import com.agenda.api.exception.BusinessException;
 import com.agenda.api.exception.ResourceNotFoundException;
 import com.agenda.api.model.*;
 import com.agenda.api.repository.*;
+import com.agenda.api.security.TenantContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class AppointmentService {
@@ -17,41 +22,57 @@ public class AppointmentService {
     private final CustomerRepository customerRepository;
     private final ProfessionalRepository professionalRepository;
     private final ServiceRepository serviceRepository;
+    private final TenantRepository tenantRepository;
     private final WhatsAppNotificationService notificationService;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
                               CustomerRepository customerRepository,
                               ProfessionalRepository professionalRepository,
                               ServiceRepository serviceRepository,
+                              TenantRepository tenantRepository,
                               WhatsAppNotificationService notificationService) {
         this.appointmentRepository = appointmentRepository;
         this.customerRepository = customerRepository;
         this.professionalRepository = professionalRepository;
         this.serviceRepository = serviceRepository;
+        this.tenantRepository = tenantRepository;
         this.notificationService = notificationService;
     }
 
     @Transactional
-    public AppointmentResponse create(AppointmentRequest request) {
-        if (request.endTime().isBefore(request.startTime()) || request.endTime().isEqual(request.startTime())) {
-            throw new BusinessException("A data de término deve ser maior que a data de início.");
-        }
+    public AppointmentResponseDTO create(CreateAppointmentRequest request) {
+        Tenant tenant = tenantRepository.findById(TenantContext.getCurrentTenant())
+                .orElseThrow(() -> new BusinessException("Tenant atual não encontrado."));
 
-        Customer customer = customerRepository.findById(request.customerId())
+        Customer customer = customerRepository.findById(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
 
-        Professional professional = professionalRepository.findById(request.professionalId())
+        Professional professional = professionalRepository.findById(request.getProfessionalId())
                 .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado"));
 
-        com.agenda.api.model.Service service = serviceRepository.findById(request.serviceId())
+        com.agenda.api.model.Service service = serviceRepository.findById(request.getServiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
 
         if (!professional.isActive()) {
             throw new BusinessException("O profissional selecionado não está ativo.");
         }
 
+        LocalDateTime startTime = request.getStartTime();
+        LocalDateTime endTime = startTime.plusMinutes(service.getDurationMinutes());
+
+        if (!startTime.toLocalDate().isEqual(endTime.toLocalDate())) {
+            throw new BusinessException("O agendamento não pode ultrapassar a meia-noite.");
+        }
+
+        LocalTime startLocalTime = startTime.toLocalTime();
+        LocalTime endLocalTime = endTime.toLocalTime();
+
+        if (startLocalTime.isBefore(tenant.getOpeningTime()) || endLocalTime.isAfter(tenant.getClosingTime())) {
+            throw new BusinessException("O horário agendado está fora do horário de funcionamento do salão.");
+        }
+
         boolean hasOverlap = appointmentRepository.hasOverlappingAppointment(
-                professional.getId(), request.startTime(), request.endTime());
+                professional.getId(), startTime, endTime);
 
         if (hasOverlap) {
             throw new BusinessException("O profissional já possui um agendamento neste horário.");
@@ -61,16 +82,15 @@ public class AppointmentService {
         appointment.setCustomer(customer);
         appointment.setProfessional(professional);
         appointment.setService(service);
-        appointment.setStartTime(request.startTime());
-        appointment.setEndTime(request.endTime());
+        appointment.setStartTime(startTime);
+        appointment.setEndTime(endTime);
         appointment.setStatus(AppointmentStatus.PENDING);
+        // Tenant is automatically set by the BaseTenantEntity listener
 
         appointment = appointmentRepository.save(appointment);
 
-        // Dispara notificação assíncrona
         if (customer.getPhone() != null && !customer.getPhone().isBlank()) {
-            // Formata a data (exemplo simples)
-            String formattedDate = request.startTime().toString(); // Poderia usar um DateTimeFormatter
+            String formattedDate = startTime.toString();
             notificationService.sendAppointmentConfirmation(
                     customer.getName(), 
                     customer.getPhone(), 
@@ -81,15 +101,33 @@ public class AppointmentService {
         return mapToResponse(appointment);
     }
 
-    private AppointmentResponse mapToResponse(Appointment appointment) {
-        return new AppointmentResponse(
-                appointment.getId(),
-                new CustomerResponse(appointment.getCustomer().getId(), appointment.getCustomer().getName(), appointment.getCustomer().getPhone(), appointment.getCustomer().getEmail()),
-                new ProfessionalResponse(appointment.getProfessional().getId(), appointment.getProfessional().getName(), appointment.getProfessional().getSpecialization(), appointment.getProfessional().isActive()),
-                new ServiceResponse(appointment.getService().getId(), appointment.getService().getName(), appointment.getService().getDescription(), appointment.getService().getPrice(), appointment.getService().getDurationMinutes(), appointment.getService().isRequiresOnlinePayment()),
-                appointment.getStartTime(),
-                appointment.getEndTime(),
-                appointment.getStatus()
-        );
+    @Transactional(readOnly = true)
+    public List<AppointmentResponseDTO> getAll() {
+        return appointmentRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public AppointmentResponseDTO updateStatus(UUID id, UpdateAppointmentStatusRequest request) {
+        Appointment appointment = appointmentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+        
+        appointment.setStatus(request.getStatus());
+        appointment = appointmentRepository.save(appointment);
+        return mapToResponse(appointment);
+    }
+
+    private AppointmentResponseDTO mapToResponse(Appointment appointment) {
+        AppointmentResponseDTO dto = new AppointmentResponseDTO();
+        dto.setId(appointment.getId());
+        dto.setCustomerName(appointment.getCustomer().getName());
+        dto.setServiceName(appointment.getService().getName());
+        dto.setProfessionalName(appointment.getProfessional().getName());
+        dto.setStartTime(appointment.getStartTime());
+        dto.setEndTime(appointment.getEndTime());
+        dto.setDurationMinutes(appointment.getService().getDurationMinutes());
+        dto.setStatus(appointment.getStatus());
+        return dto;
     }
 }

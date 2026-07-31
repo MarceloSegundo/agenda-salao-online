@@ -61,4 +61,46 @@ public class TenantService {
 
         return tenant;
     }
+
+    @Transactional(readOnly = true)
+    public com.agenda.api.dto.TenantResponse getCurrentTenant() {
+        java.util.UUID tenantId = com.agenda.api.security.TenantContext.getCurrentTenant();
+        if (tenantId == null) {
+            throw new BusinessException("Contexto de Tenant não encontrado.");
+        }
+        
+        Tenant tenant = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> new BusinessException("Tenant não encontrado."));
+                
+        return mapToResponse(tenant);
+    }
+
+    @Transactional
+    public com.agenda.api.dto.TenantResponse updateSettings(com.agenda.api.dto.TenantSettingsRequest request) {
+        java.util.UUID tenantId = com.agenda.api.security.TenantContext.getCurrentTenant();
+        if (tenantId == null) {
+            throw new BusinessException("Contexto de Tenant não encontrado.");
+        }
+        
+        Tenant tenant = tenantRepository.findById(tenantId)
+                .orElseThrow(() -> new BusinessException("Tenant não encontrado."));
+                
+        tenant.setName(request.salonName());
+        tenant.setOpeningTime(request.openingTime());
+        tenant.setClosingTime(request.closingTime());
+        
+        tenant = tenantRepository.save(tenant);
+        return mapToResponse(tenant);
+    }
+    
+    private com.agenda.api.dto.TenantResponse mapToResponse(Tenant tenant) {
+        return new com.agenda.api.dto.TenantResponse(
+                tenant.getId(),
+                tenant.getName(),
+                tenant.getDomain(),
+                tenant.getOpeningTime(),
+                tenant.getClosingTime(),
+                tenant.isActive()
+        );
+    }
 }

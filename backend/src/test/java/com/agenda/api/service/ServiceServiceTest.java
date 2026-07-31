@@ -42,8 +42,9 @@ public class ServiceServiceTest {
         service.setPrice(new BigDecimal("50.00"));
         service.setDurationMinutes(30);
         service.setRequiresOnlinePayment(false);
+        service.setActive(true);
 
-        request = new ServiceRequest("Corte de Cabelo", "Corte masculino", new BigDecimal("50.00"), 30, false);
+        request = new ServiceRequest("Corte de Cabelo", "Corte masculino", new BigDecimal("50.00"), 30, false, true);
     }
 
     @Test

@@ -26,6 +26,7 @@ public class ServiceService {
         service.setPrice(request.price());
         service.setDurationMinutes(request.durationMinutes());
         service.setRequiresOnlinePayment(request.requiresOnlinePayment());
+        service.setActive(request.active());
 
         service = serviceRepository.save(service);
 
@@ -39,6 +40,38 @@ public class ServiceService {
         return mapToResponse(service);
     }
 
+    @Transactional(readOnly = true)
+    public java.util.List<ServiceResponse> findAll() {
+        return serviceRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
+    @Transactional
+    public ServiceResponse update(UUID id, ServiceRequest request) {
+        com.agenda.api.model.Service service = serviceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado com ID: " + id));
+        
+        service.setName(request.name());
+        service.setDescription(request.description());
+        service.setPrice(request.price());
+        service.setDurationMinutes(request.durationMinutes());
+        service.setRequiresOnlinePayment(request.requiresOnlinePayment());
+        service.setActive(request.active());
+        
+        service = serviceRepository.save(service);
+        return mapToResponse(service);
+    }
+
+    @Transactional
+    public void delete(UUID id) {
+        com.agenda.api.model.Service service = serviceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado com ID: " + id));
+        
+        service.setActive(false);
+        serviceRepository.save(service);
+    }
+
     private ServiceResponse mapToResponse(com.agenda.api.model.Service service) {
         return new ServiceResponse(
                 service.getId(),
@@ -46,7 +79,8 @@ public class ServiceService {
                 service.getDescription(),
                 service.getPrice(),
                 service.getDurationMinutes(),
-                service.isRequiresOnlinePayment()
+                service.isRequiresOnlinePayment(),
+                service.isActive()
         );
     }
 }
