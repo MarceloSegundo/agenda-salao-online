@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -116,5 +117,37 @@ public class GlobalExceptionHandler {
                 errors
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrityViolationException(DataIntegrityViolationException ex, HttpServletRequest request) {
+        String traceId = MDC.get(MdcFilter.TRACE_ID_KEY);
+        
+        String messageDetail = ex.getMostSpecificCause().getMessage();
+        logger.warn("Data Integrity Violation [traceId={}]: {}", traceId, messageDetail);
+
+        if (messageDetail != null && messageDetail.toLowerCase().contains("email")) {
+            Map<String, String> errors = new HashMap<>();
+            errors.put("adminEmail", "Este e-mail já está em uso.");
+            
+            ApiErrorResponse error = new ApiErrorResponse(
+                    HttpStatus.BAD_REQUEST.value(),
+                    "Validation Error",
+                    "Falha na validação dos campos.",
+                    request.getRequestURI(),
+                    traceId,
+                    errors
+            );
+            return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        }
+
+        ApiErrorResponse error = new ApiErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                "Ocorreu um erro de integridade de dados (ex: registro duplicado).",
+                request.getRequestURI(),
+                traceId
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
     }
 }

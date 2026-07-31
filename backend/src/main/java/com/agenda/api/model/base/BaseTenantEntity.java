@@ -31,6 +31,12 @@ public abstract class BaseTenantEntity implements Serializable {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        if (this.tenantId == null) {
+            java.util.UUID tenant = com.agenda.api.security.TenantContext.getCurrentTenant();
+            if (tenant != null) {
+                this.tenantId = tenant;
+            }
+        }
     }
 
     @PreUpdate

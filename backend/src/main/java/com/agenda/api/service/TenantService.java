@@ -33,7 +33,20 @@ public class TenantService {
         Tenant tenant = new Tenant();
         tenant.setName(request.getSalonName());
         
-        String domainSlug = request.getSalonName().toLowerCase().replaceAll("[^a-z0-9]+", "-");
+        String baseDomain = request.getSalonName().toLowerCase().replaceAll("[^a-z0-9]+", "-");
+        // Remove traços duplos e traços no final
+        baseDomain = baseDomain.replaceAll("-+", "-").replaceAll("-$", "");
+        if (baseDomain.isEmpty()) {
+            baseDomain = "salao";
+        }
+
+        String domainSlug = baseDomain;
+        int counter = 1;
+        while (tenantRepository.findByDomain(domainSlug).isPresent()) {
+            domainSlug = baseDomain + "-" + java.util.UUID.randomUUID().toString().substring(0, 4);
+            // Pra evitar loops infinitos caso a UUID coincida (raro, mas possível), usamos também um contador opcional
+            // Mas o UUID.substring já resolve muito bem no mercado
+        }
         tenant.setDomain(domainSlug);
         
         tenant = tenantRepository.save(tenant);
