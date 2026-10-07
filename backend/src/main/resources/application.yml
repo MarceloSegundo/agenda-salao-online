@@ -24,7 +24,7 @@ whatsapp:
   enabled: ${WHATSAPP_ENABLED:true}
 
 jwt:
-  secret: ${JWT_SECRET:mySuperSecretKeyThatIsAtLeast32CharactersLongAndVerySecure}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
 app:
