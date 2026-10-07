@@ -46,3 +46,14 @@ O endpoint público de login (`/api/auth/login`) não possui nenhum limite de ta
 
 ---
 *Este documento deve ser revisado periodicamente (ex: a cada ciclo/sprint) e itens resolvidos devem ser movidos para uma seção de Histórico ou apagados.*
+
+## 5. Busca por id ignora o filtro de tenant (Prioridade: Alta)
+
+**Problema:**
+O filtro do Hibernate (`@Filter(name = "tenantFilter")`) só é aplicado a consultas (JPQL/Criteria). Buscas por chave primária, como `repository.findById(id)` (que usa `EntityManager.find`), **não** passam pelo filtro. Nos serviços de clientes, profissionais, serviços e agendamentos, um salão que conheça o UUID de um registro de outro salão consegue lê-lo ou alterá-lo.
+
+**Solução Proposta:**
+- Trocar `findById` por métodos derivados `findByIdAndTenantId(id, TenantContext.getCurrentTenant())` nos repositórios, ou validar o `tenantId` da entidade carregada antes de devolvê-la.
+- Adicionar um teste de integração que crie dois salões e garanta `404` ao acessar o recurso de um pelo token do outro.
+- Atualizar o ADR 0001, que hoje descreve o filtro como mitigação suficiente.
+
