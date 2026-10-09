@@ -15,7 +15,7 @@ Plataforma SaaS de agendamento para salões de beleza, barbearias e spas. Cada s
 
 As decisões ficam registradas como ADRs em [`docs/adr/`](docs/adr/):
 
-- **[ADR 0001: multi-tenancy com coluna discriminadora](docs/adr/0001-multi-tenant-architecture.md).** Banco compartilhado com `tenant_id` em vez de banco ou schema por salão. Toda entidade de salão herda de `BaseTenantEntity`, um filtro do Hibernate adiciona `tenant_id = ?` às consultas e o tenant atual vive num `ThreadLocal`. **Limitação conhecida:** o filtro do Hibernate não se aplica a buscas por id (`findById`), então essas rotas ainda precisam validar o tenant explicitamente (ver débitos técnicos). O trade-off está documentado no ADR: infraestrutura mais simples e barata, em troca de disciplina (toda entidade nova de salão precisa herdar `BaseTenantEntity` e aplicar o filtro) e de um possível particionamento por `tenant_id` no futuro.
+- **[ADR 0001: multi-tenancy com coluna discriminadora](docs/adr/0001-multi-tenant-architecture.md).** Banco compartilhado com `tenant_id` em vez de banco ou schema por salão. Toda entidade de salão herda de `BaseTenantEntity`, um filtro do Hibernate adiciona `tenant_id = ?` às consultas e o tenant atual vive num `ThreadLocal`. Como o filtro não se aplica a buscas por chave primária (`findById`), essas buscas passam por um repositório base que sempre filtra pelo salão do token (`findByIdAndTenantId`), e um teste de integração com dois salões garante `404` em acessos cruzados. O trade-off está documentado no ADR: infraestrutura mais simples e barata, em troca de disciplina (toda entidade nova de salão precisa herdar `BaseTenantEntity` e aplicar o filtro) e de um possível particionamento por `tenant_id` no futuro.
 - **[ADR 0002: notificação por WhatsApp num microsserviço separado](docs/adr/0002-whatsapp-integration.md).** `whatsapp-web.js` isolado num serviço Node.js, chamado de forma assíncrona pelo backend, em vez da Cloud API oficial (verificação da Meta e custo por mensagem) ou de uma biblioteca não oficial embutida na JVM.
 
 Visão geral dos componentes e do modelo de domínio: [`docs/wiki/architecture.md`](docs/wiki/architecture.md).
@@ -59,7 +59,6 @@ Testes unitários dos serviços (JUnit 5 + Mockito) e testes de integração do 
 
 Os débitos técnicos conhecidos, com a solução planejada para cada um, estão em [`docs/wiki/technical_debt.md`](docs/wiki/technical_debt.md). Em resumo, mais a troca do schema gerado pelo Hibernate por migrações versionadas:
 
-- buscas por id sem checagem de tenant → `findByIdAndTenantId` e teste de isolamento entre salões;
 - notificações hoje síncronas → eventos do Spring com listener `@Async`;
 - JWT guardado no `localStorage` do frontend → cookie `HttpOnly` e `Secure`;
 - login e cadastro sem rate limiting → Bucket4j por IP;

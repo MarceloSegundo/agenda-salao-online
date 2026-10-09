@@ -13,3 +13,6 @@ spring:
 jwt:
   secret: test-only-secret-key-with-at-least-32-characters-0123456789
   expiration: 3600000
+
+whatsapp:
+  enabled: false

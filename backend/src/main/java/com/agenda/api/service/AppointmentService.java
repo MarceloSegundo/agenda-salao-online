@@ -46,13 +46,13 @@ public class AppointmentService {
         Tenant tenant = tenantRepository.findById(TenantContext.getCurrentTenant())
                 .orElseThrow(() -> new BusinessException("Tenant atual não encontrado."));
 
-        Customer customer = customerRepository.findById(request.getCustomerId())
+        Customer customer = customerRepository.findByIdInCurrentTenant(request.getCustomerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado"));
 
-        Professional professional = professionalRepository.findById(request.getProfessionalId())
+        Professional professional = professionalRepository.findByIdInCurrentTenant(request.getProfessionalId())
                 .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado"));
 
-        com.agenda.api.model.Service service = serviceRepository.findById(request.getServiceId())
+        com.agenda.api.model.Service service = serviceRepository.findByIdInCurrentTenant(request.getServiceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado"));
 
         if (!professional.isActive()) {
@@ -130,7 +130,7 @@ public class AppointmentService {
 
     @Transactional
     public AppointmentResponseDTO updateStatus(UUID id, UpdateAppointmentStatusRequest request) {
-        Appointment appointment = appointmentRepository.findById(id)
+        Appointment appointment = appointmentRepository.findByIdInCurrentTenant(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
         
         appointment.setStatus(request.getStatus());

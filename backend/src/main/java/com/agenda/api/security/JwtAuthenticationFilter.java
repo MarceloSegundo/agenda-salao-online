@@ -1,6 +1,5 @@
 package com.agenda.api.security;
 
-import com.agenda.api.security.TenantContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +31,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
+    ) throws ServletException, IOException {
+        // O tenant vive num ThreadLocal e a thread volta para o pool do servidor:
+        // limpar aqui, em qualquer desfecho, impede que ele vaze para a próxima requisição.
+        try {
+            authenticateAndContinue(request, response, filterChain);
+        } finally {
+            TenantContext.clear();
+        }
+    }
+
+    private void authenticateAndContinue(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
     ) throws ServletException, IOException {
         String path = request.getRequestURI();
         if (path.startsWith("/api/auth/") || path.startsWith("/api/tenants/register")) {
@@ -78,12 +91,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
         
-        try {
-            filterChain.doFilter(request, response);
-        } finally {
-            // It's critical to clear the tenant context if it was set here, 
-            // although TenantInterceptor will also clear it.
-            // But we can let TenantInterceptor handle the clearance.
-        }
+        filterChain.doFilter(request, response);
     }
 }

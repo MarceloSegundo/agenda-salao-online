@@ -57,12 +57,12 @@ public class ProfessionalServiceTest {
 
     @Test
     void shouldFindProfessionalById() {
-        when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
+        when(professionalRepository.findByIdInCurrentTenant(professionalId)).thenReturn(Optional.of(professional));
 
         ProfessionalResponse response = professionalService.findById(professionalId);
 
         assertNotNull(response);
         assertEquals(professionalId, response.id());
-        verify(professionalRepository, times(1)).findById(professionalId);
+        verify(professionalRepository, times(1)).findByIdInCurrentTenant(professionalId);
     }
 }

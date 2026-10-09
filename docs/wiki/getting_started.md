@@ -58,9 +58,9 @@ Welcome to the **Agenda Salão Online** project! This guide will help you set up
   The tests use an in-memory H2 database.
 
 - **Making API Calls:**
-  Because the API uses multi-tenancy, almost all endpoints require the `X-Tenant-ID` header.
+  Register a salon (`POST /api/tenants/register`), log in (`POST /api/auth/login`) and send the returned token. The salon (tenant) is taken from the token; there is no tenant header.
   Example request:
   ```bash
-  curl -X GET http://localhost:8080/api/customers \
-       -H "X-Tenant-ID: 123e4567-e89b-12d3-a456-426614174000"
+  curl -X GET http://localhost:8080/api/professionals \
+       -H "Authorization: Bearer <token>"
   ```

@@ -57,18 +57,18 @@ public class CustomerServiceTest {
 
     @Test
     void shouldFindCustomerById() {
-        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
+        when(customerRepository.findByIdInCurrentTenant(customerId)).thenReturn(Optional.of(customer));
 
         CustomerResponse response = customerService.findById(customerId);
 
         assertNotNull(response);
         assertEquals(customerId, response.id());
-        verify(customerRepository, times(1)).findById(customerId);
+        verify(customerRepository, times(1)).findByIdInCurrentTenant(customerId);
     }
 
     @Test
     void shouldThrowExceptionWhenCustomerNotFound() {
-        when(customerRepository.findById(customerId)).thenReturn(Optional.empty());
+        when(customerRepository.findByIdInCurrentTenant(customerId)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () -> customerService.findById(customerId));
     }

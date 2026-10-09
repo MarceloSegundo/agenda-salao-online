@@ -35,7 +35,7 @@ public class ServiceService {
 
     @Transactional(readOnly = true)
     public ServiceResponse findById(UUID id) {
-        com.agenda.api.model.Service service = serviceRepository.findById(id)
+        com.agenda.api.model.Service service = serviceRepository.findByIdInCurrentTenant(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado com ID: " + id));
         return mapToResponse(service);
     }
@@ -49,7 +49,7 @@ public class ServiceService {
 
     @Transactional
     public ServiceResponse update(UUID id, ServiceRequest request) {
-        com.agenda.api.model.Service service = serviceRepository.findById(id)
+        com.agenda.api.model.Service service = serviceRepository.findByIdInCurrentTenant(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado com ID: " + id));
         
         service.setName(request.name());
@@ -65,7 +65,7 @@ public class ServiceService {
 
     @Transactional
     public void delete(UUID id) {
-        com.agenda.api.model.Service service = serviceRepository.findById(id)
+        com.agenda.api.model.Service service = serviceRepository.findByIdInCurrentTenant(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Serviço não encontrado com ID: " + id));
         
         service.setActive(false);

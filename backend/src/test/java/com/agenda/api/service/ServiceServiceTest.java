@@ -61,12 +61,12 @@ public class ServiceServiceTest {
 
     @Test
     void shouldFindServiceById() {
-        when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        when(serviceRepository.findByIdInCurrentTenant(serviceId)).thenReturn(Optional.of(service));
 
         ServiceResponse response = serviceService.findById(serviceId);
 
         assertNotNull(response);
         assertEquals(serviceId, response.id());
-        verify(serviceRepository, times(1)).findById(serviceId);
+        verify(serviceRepository, times(1)).findByIdInCurrentTenant(serviceId);
     }
 }

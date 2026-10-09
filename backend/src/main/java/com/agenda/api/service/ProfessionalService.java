@@ -42,7 +42,7 @@ public class ProfessionalService {
 
     @Transactional(readOnly = true)
     public ProfessionalResponse findById(UUID id) {
-        Professional professional = professionalRepository.findById(id)
+        Professional professional = professionalRepository.findByIdInCurrentTenant(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado com ID: " + id));
         return mapToResponse(professional);
     }
@@ -56,7 +56,7 @@ public class ProfessionalService {
 
     @Transactional
     public ProfessionalResponse update(UUID id, ProfessionalRequest request) {
-        Professional professional = professionalRepository.findById(id)
+        Professional professional = professionalRepository.findByIdInCurrentTenant(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado com ID: " + id));
         
         professional.setName(request.name());
@@ -80,7 +80,7 @@ public class ProfessionalService {
 
     @Transactional
     public void delete(UUID id) {
-        Professional professional = professionalRepository.findById(id)
+        Professional professional = professionalRepository.findByIdInCurrentTenant(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Profissional não encontrado com ID: " + id));
         
         // Soft delete

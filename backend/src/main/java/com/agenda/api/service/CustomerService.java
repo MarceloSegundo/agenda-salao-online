@@ -33,7 +33,7 @@ public class CustomerService {
 
     @Transactional(readOnly = true)
     public CustomerResponse findById(UUID id) {
-        Customer customer = customerRepository.findById(id)
+        Customer customer = customerRepository.findByIdInCurrentTenant(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Cliente não encontrado com ID: " + id));
         return mapToResponse(customer);
     }

@@ -108,9 +108,9 @@ public class AppointmentServiceTest {
     @Test
     void shouldCreateAppointmentSuccessfully() {
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
-        when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
-        when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        when(customerRepository.findByIdInCurrentTenant(customerId)).thenReturn(Optional.of(customer));
+        when(professionalRepository.findByIdInCurrentTenant(professionalId)).thenReturn(Optional.of(professional));
+        when(serviceRepository.findByIdInCurrentTenant(serviceId)).thenReturn(Optional.of(service));
         
         when(appointmentRepository.hasOverlappingAppointment(eq(professionalId), any(), any())).thenReturn(false);
 
@@ -136,9 +136,9 @@ public class AppointmentServiceTest {
     @Test
     void shouldThrowExceptionWhenTimeOverlaps() {
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
-        when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
-        when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        when(customerRepository.findByIdInCurrentTenant(customerId)).thenReturn(Optional.of(customer));
+        when(professionalRepository.findByIdInCurrentTenant(professionalId)).thenReturn(Optional.of(professional));
+        when(serviceRepository.findByIdInCurrentTenant(serviceId)).thenReturn(Optional.of(service));
         
         when(appointmentRepository.hasOverlappingAppointment(eq(professionalId), any(), any())).thenReturn(true);
 
@@ -151,9 +151,9 @@ public class AppointmentServiceTest {
     @Test
     void shouldThrowExceptionWhenOutsideBusinessHours() {
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
-        when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
-        when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        when(customerRepository.findByIdInCurrentTenant(customerId)).thenReturn(Optional.of(customer));
+        when(professionalRepository.findByIdInCurrentTenant(professionalId)).thenReturn(Optional.of(professional));
+        when(serviceRepository.findByIdInCurrentTenant(serviceId)).thenReturn(Optional.of(service));
         
         // 17:30 with 60m duration ends at 18:30 (outside business hours, closing is 18:00)
         request.setStartTime(LocalDateTime.now().plusDays(1).withHour(17).withMinute(30));
@@ -167,9 +167,9 @@ public class AppointmentServiceTest {
     @Test
     void shouldThrowExceptionWhenCrossingMidnight() {
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
-        when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
-        when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        when(customerRepository.findByIdInCurrentTenant(customerId)).thenReturn(Optional.of(customer));
+        when(professionalRepository.findByIdInCurrentTenant(professionalId)).thenReturn(Optional.of(professional));
+        when(serviceRepository.findByIdInCurrentTenant(serviceId)).thenReturn(Optional.of(service));
         
         // Set tenant closing time to next day somehow? Actually, the rule just prevents midnight cross
         request.setStartTime(LocalDateTime.now().plusDays(1).withHour(23).withMinute(30));
@@ -183,9 +183,9 @@ public class AppointmentServiceTest {
     @Test
     void shouldThrowExceptionWhenProfessionalIsClosedOnDay() {
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
-        when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
-        when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        when(customerRepository.findByIdInCurrentTenant(customerId)).thenReturn(Optional.of(customer));
+        when(professionalRepository.findByIdInCurrentTenant(professionalId)).thenReturn(Optional.of(professional));
+        when(serviceRepository.findByIdInCurrentTenant(serviceId)).thenReturn(Optional.of(service));
         
         // Start time is set to tomorrow
         LocalDateTime startTime = request.getStartTime();
@@ -205,9 +205,9 @@ public class AppointmentServiceTest {
     @Test
     void shouldCreateAppointmentWhenWithinProfessionalCustomHours() {
         when(tenantRepository.findById(tenantId)).thenReturn(Optional.of(tenant));
-        when(customerRepository.findById(customerId)).thenReturn(Optional.of(customer));
-        when(professionalRepository.findById(professionalId)).thenReturn(Optional.of(professional));
-        when(serviceRepository.findById(serviceId)).thenReturn(Optional.of(service));
+        when(customerRepository.findByIdInCurrentTenant(customerId)).thenReturn(Optional.of(customer));
+        when(professionalRepository.findByIdInCurrentTenant(professionalId)).thenReturn(Optional.of(professional));
+        when(serviceRepository.findByIdInCurrentTenant(serviceId)).thenReturn(Optional.of(service));
         when(appointmentRepository.hasOverlappingAppointment(eq(professionalId), any(), any())).thenReturn(false);
 
         // Start time is set to tomorrow

@@ -22,7 +22,7 @@ We implemented this by:
 - Creating a `BaseTenantEntity` annotated with `@MappedSuperclass` which includes the `tenantId`.
 - Applying Hibernate's `@FilterDef` and `@Filter` to enforce that all queries automatically include `tenant_id = ?`.
 - Managing the current tenant in a `ThreadLocal` via `TenantContext`.
-- Using a `TenantInterceptor` (Spring `HandlerInterceptor`) to extract the tenant identifier from the HTTP request headers (`X-Tenant-ID`) and populate the `TenantContext`.
+- Populating the `TenantContext` only from the signed JWT, in `JwtAuthenticationFilter`, and clearing it in a `finally` block at the end of every request.
 
 ## Consequences
 
@@ -34,4 +34,13 @@ We implemented this by:
 **Negative:**
 - Requires discipline: every new entity that belongs to a tenant MUST extend `BaseTenantEntity` and apply the Hibernate `@Filter`, otherwise data leakage could occur.
 - Performance implications: large tables might need partitioning by `tenant_id` in the future.
-- Security: if the application logic bypasses the `TenantContext`, it may query the whole database. (This is mitigated by the Hibernate Filter which requires the parameter to be set).
+- Security: the Hibernate Filter only applies to queries (JPQL/Criteria). Lookups by primary key (`findById`, i.e. `EntityManager.find`) bypass it. See the update below.
+
+## Update (2026-10-09)
+
+The original decision assumed the Hibernate Filter alone prevented cross-tenant access. It does not cover primary-key lookups, and a salon that knew another salon's record UUID could read, change or book with it.
+
+Changes:
+- Tenant entities' repositories extend `TenantScopedRepository`, and services load records by id with `findByIdInCurrentTenant` (`findByIdAndTenantId` with the tenant from the token).
+- The `TenantInterceptor` that accepted the tenant from an `X-Tenant-ID` header was removed: the tenant comes only from the signed JWT.
+- `TenantIsolationIntegrationTest` registers two salons and asserts `404` for cross-tenant reads, updates, deletes and bookings, and that lists only contain the caller's records.
