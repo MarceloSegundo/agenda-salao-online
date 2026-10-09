@@ -96,6 +96,7 @@ export function AgendaPage() {
       <NewAppointmentSheet 
         isOpen={isSheetOpen} 
         onOpenChange={setIsSheetOpen} 
+        date={selectedDate}
       />
     </div>
   );

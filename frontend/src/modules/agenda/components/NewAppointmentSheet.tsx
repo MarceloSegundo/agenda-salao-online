@@ -1,23 +1,102 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { X, CalendarPlus } from 'lucide-react';
 import { Button, Input, Label } from '../../../shared/components';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { servicesApi } from '../../settings/api/services';
+import { professionalsApi } from '../../settings/api/professionals';
+import { tenantApi } from '../../settings/api/tenant';
 
 interface NewAppointmentSheetProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
+  date: Date;
 }
 
-export function NewAppointmentSheet({ isOpen, onOpenChange }: NewAppointmentSheetProps) {
+export function NewAppointmentSheet({ isOpen, onOpenChange, date }: NewAppointmentSheetProps) {
   const [step, setStep] = useState(1);
+  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<number | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
-  const handleNext = () => setStep(s => Math.min(s + 1, 4));
+  const { data: services } = useQuery({
+    queryKey: ['services'],
+    queryFn: servicesApi.getServices,
+    enabled: isOpen
+  });
+
+  const { data: professionals } = useQuery({
+    queryKey: ['professionals'],
+    queryFn: professionalsApi.getProfessionals,
+    enabled: isOpen
+  });
+
+  const { data: tenantSettings } = useQuery({
+    queryKey: ['tenant-settings'],
+    queryFn: tenantApi.getSettings,
+    enabled: isOpen
+  });
+
+  const activeServices = services?.filter(s => s.active) || [];
+  const activeProfessionals = professionals?.filter(p => p.active) || [];
+
+  const timeSlots = useMemo(() => {
+    // Mesma regra do backend: vale o horário do profissional no dia; sem ele, o do salão.
+    // getDay() conta domingo como 0; a API usa 1 (segunda) a 7 (domingo).
+    const dayOfWeek = date.getDay() === 0 ? 7 : date.getDay();
+    const professional = activeProfessionals.find(p => p.id === selectedProfessionalId);
+    const hours =
+      professional?.businessHours?.find(bh => bh.dayOfWeek === dayOfWeek) ??
+      tenantSettings?.businessHours?.find(bh => bh.dayOfWeek === dayOfWeek);
+    if (!hours || hours.isClosed) return [];
+
+    const slots = [];
+    const [openHour, openMin] = hours.openingTime.split(':').map(Number);
+    const [closeHour, closeMin] = hours.closingTime.split(':').map(Number);
+
+    const startMinutes = openHour * 60 + openMin;
+    const endMinutes = closeHour * 60 + closeMin;
+    const selectedService = activeServices.find(s => s.id === selectedServiceId);
+    const duration = selectedService?.durationMinutes || 30;
+
+    for (let time = startMinutes; time + duration <= endMinutes; time += 30) {
+      const h = Math.floor(time / 60).toString().padStart(2, '0');
+      const m = (time % 60).toString().padStart(2, '0');
+      slots.push(`${h}:${m}`);
+    }
+    return slots;
+  }, [date, tenantSettings, selectedServiceId, selectedProfessionalId, activeServices, activeProfessionals]);
+
+
+  const handleNext = () => {
+    if (step === 2 && !selectedServiceId) {
+      alert('Selecione um serviço primeiro.');
+      return;
+    }
+    if (step === 3 && !selectedProfessionalId) {
+      alert('Selecione um profissional primeiro.');
+      return;
+    }
+    setStep(s => Math.min(s + 1, 4));
+  };
+  
   const handlePrev = () => setStep(s => Math.max(s - 1, 1));
+  
   const handleFinish = () => {
-    // Submit data
+    if (!selectedTime) {
+      alert('Selecione um horário.');
+      return;
+    }
+    // Submit data logic here...
+    alert(`Agendado! Serviço: ${selectedServiceId}, Profissional: ${selectedProfessionalId}, Horário: ${selectedTime}`);
     onOpenChange(false);
     // Reset after close
-    setTimeout(() => setStep(1), 300);
+    setTimeout(() => {
+      setStep(1);
+      setSelectedServiceId(null);
+      setSelectedProfessionalId(null);
+      setSelectedTime(null);
+    }, 300);
   };
 
   return (
@@ -79,10 +158,20 @@ export function NewAppointmentSheet({ isOpen, onOpenChange }: NewAppointmentShee
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                   <h3 className="text-lg font-bold text-slate-800 mb-2">Qual o serviço?</h3>
                   <div className="grid gap-3">
-                    {/* Mock Services */}
-                    {['Corte Masculino (30min)', 'Barba (20min)', 'Corte + Barba (50min)'].map((s, idx) => (
-                      <button key={idx} className="text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-indigo-600 hover:bg-indigo-50 transition-colors">
-                        <span className="font-medium text-slate-700">{s}</span>
+                    {activeServices.length === 0 && (
+                      <p className="text-sm text-slate-500">Nenhum serviço cadastrado.</p>
+                    )}
+                    {activeServices.map((s) => (
+                      <button 
+                        key={s.id} 
+                        onClick={() => setSelectedServiceId(s.id)}
+                        className={`text-left px-4 py-3 rounded-xl border transition-colors ${selectedServiceId === s.id ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-indigo-600 hover:bg-indigo-50'}`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-slate-700">{s.name}</span>
+                          <span className="text-xs text-slate-500">{s.durationMinutes} min</span>
+                        </div>
+                        <div className="text-sm text-slate-500 mt-1">R$ {s.price.toFixed(2)}</div>
                       </button>
                     ))}
                   </div>
@@ -94,13 +183,19 @@ export function NewAppointmentSheet({ isOpen, onOpenChange }: NewAppointmentShee
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                   <h3 className="text-lg font-bold text-slate-800 mb-2">Com qual profissional?</h3>
                   <div className="grid gap-3">
-                    {/* Mock Professionals */}
-                    {['João Silva', 'Maria Souza', 'Qualquer profissional'].map((p, idx) => (
-                      <button key={idx} className="text-left px-4 py-3 rounded-xl border border-slate-200 hover:border-indigo-600 hover:bg-indigo-50 transition-colors flex items-center gap-3">
+                    {activeProfessionals.length === 0 && (
+                      <p className="text-sm text-slate-500">Nenhum profissional cadastrado.</p>
+                    )}
+                    {activeProfessionals.map((p) => (
+                      <button 
+                        key={p.id} 
+                        onClick={() => setSelectedProfessionalId(p.id)}
+                        className={`text-left px-4 py-3 rounded-xl border transition-colors flex items-center gap-3 ${selectedProfessionalId === p.id ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 hover:border-indigo-600 hover:bg-indigo-50'}`}
+                      >
                         <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-xs">
-                          {p.substring(0, 2).toUpperCase()}
+                          {p.name.substring(0, 2).toUpperCase()}
                         </div>
-                        <span className="font-medium text-slate-700">{p}</span>
+                        <span className="font-medium text-slate-700">{p.name}</span>
                       </button>
                     ))}
                   </div>
@@ -112,10 +207,16 @@ export function NewAppointmentSheet({ isOpen, onOpenChange }: NewAppointmentShee
                 <div className="space-y-4 animate-in fade-in slide-in-from-right-4">
                   <h3 className="text-lg font-bold text-slate-800 mb-2">Quando?</h3>
                   <div className="grid grid-cols-3 gap-2">
-                    {/* Mock Times */}
-                    {['09:00', '09:30', '10:00', '14:00', '14:30', '15:00'].map((t, idx) => (
-                      <button key={idx} className="px-2 py-3 rounded-xl border border-slate-200 hover:border-indigo-600 hover:bg-indigo-50 transition-colors text-center">
-                        <span className="font-bold text-slate-700">{t}</span>
+                    {timeSlots.length === 0 && (
+                      <p className="text-sm text-slate-500 col-span-3">Nenhum horário disponível para a duração do serviço selecionado nos horários de funcionamento do salão.</p>
+                    )}
+                    {timeSlots.map((t, idx) => (
+                      <button 
+                        key={idx} 
+                        onClick={() => setSelectedTime(t)}
+                        className={`px-2 py-3 rounded-xl border transition-colors text-center ${selectedTime === t ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-slate-200 hover:border-indigo-600 hover:bg-indigo-50 text-slate-700'}`}
+                      >
+                        <span className="font-bold">{t}</span>
                       </button>
                     ))}
                   </div>

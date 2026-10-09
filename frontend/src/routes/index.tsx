@@ -7,6 +7,11 @@ import { AgendaPage } from '../modules/agenda/pages/agenda-page';
 import { CustomersPage } from '../modules/customers/pages/customers-page';
 import { SettingsPage } from '../modules/settings/pages/settings-page';
 
+import { ServicesSettingsPage } from '../modules/settings/pages/services-settings-page';
+import { ProfessionalsSettingsPage } from '../modules/settings/pages/professionals-settings-page';
+import { HoursSettingsPage } from '../modules/settings/pages/hours-settings-page';
+import { StoreSettingsPage } from '../modules/settings/pages/store-settings-page';
+
 export const router = createBrowserRouter([
   {
     path: '/',
@@ -38,7 +43,28 @@ export const router = createBrowserRouter([
       },
       {
         path: 'configuracoes',
-        element: <SettingsPage />,
+        children: [
+          {
+            index: true,
+            element: <SettingsPage />,
+          },
+          {
+            path: 'servicos',
+            element: <ServicesSettingsPage />,
+          },
+          {
+            path: 'equipe',
+            element: <ProfessionalsSettingsPage />,
+          },
+          {
+            path: 'horarios',
+            element: <HoursSettingsPage />,
+          },
+          {
+            path: 'loja',
+            element: <StoreSettingsPage />,
+          }
+        ]
       },
     ]
   },

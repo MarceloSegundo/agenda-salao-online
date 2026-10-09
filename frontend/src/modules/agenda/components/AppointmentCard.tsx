@@ -31,7 +31,7 @@ const statusLabels = {
   CANCELED: 'Cancelado',
 };
 
-export function AppointmentCard({ appointment, onStatusChange }: AppointmentCardProps) {
+export function AppointmentCard({ appointment, onStatusChange, onEdit }: AppointmentCardProps) {
   const [showActions, setShowActions] = useState(false);
 
   const toggleActions = () => setShowActions(!showActions);
