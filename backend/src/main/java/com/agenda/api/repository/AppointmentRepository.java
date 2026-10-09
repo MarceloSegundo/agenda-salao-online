@@ -20,6 +20,8 @@ public interface AppointmentRepository extends TenantScopedRepository<Appointmen
                                       @Param("startTime") LocalDateTime startTime,
                                       @Param("endTime") LocalDateTime endTime);
 
+    List<Appointment> findByStartTimeGreaterThanEqualAndStartTimeLessThanOrderByStartTimeAsc(LocalDateTime start, LocalDateTime end);
+
     /** Agendamentos não cancelados com início em [start, end). */
     @Query("SELECT a FROM Appointment a WHERE a.startTime >= :start AND a.startTime < :end "
             + "AND a.status <> com.agenda.api.model.AppointmentStatus.CANCELED")

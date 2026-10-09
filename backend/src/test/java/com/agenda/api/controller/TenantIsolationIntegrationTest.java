@@ -117,7 +117,9 @@ public class TenantIsolationIntegrationTest {
     void listsOnlyContainOwnRecords() {
         assertThat(idsFrom(tokenB, "/api/professionals")).doesNotContain(professionalA);
         assertThat(idsFrom(tokenB, "/api/services")).doesNotContain(serviceA);
-        assertThat(idsFrom(tokenB, "/api/appointments")).doesNotContain(appointmentA);
+        LocalDate appointmentDay = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
+        assertThat(idsFrom(tokenB, "/api/appointments?date=" + appointmentDay)).doesNotContain(appointmentA);
+        assertThat(idsFrom(tokenA, "/api/appointments?date=" + appointmentDay)).contains(appointmentA);
 
         assertThat(idsFrom(tokenA, "/api/professionals")).contains(professionalA);
     }
@@ -136,6 +138,15 @@ public class TenantIsolationIntegrationTest {
 
         Map<?, ?> customer = call(tokenA, HttpMethod.GET, "/api/customers/" + customerA, null).getBody();
         assertThat(customer.get("name")).isEqualTo("Cliente do A");
+    }
+
+    @Test
+    void availabilityRejectsAnotherTenantsProfessional() {
+        String serviceB = createAs(tokenB, "/api/services", serviceBody("Corte do B"));
+        LocalDate nextMonday = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));
+
+        assertNotFound(call(tokenB, HttpMethod.GET, "/api/appointments/availability?date=" + nextMonday
+                + "&serviceId=" + serviceB + "&professionalId=" + professionalA, null));
     }
 
     private String registerAndLogin(String salonName) {

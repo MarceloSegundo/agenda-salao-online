@@ -9,6 +9,7 @@ public class AppointmentResponseDTO {
     private UUID id;
     private String customerName;
     private String serviceName;
+    private UUID professionalId;
     private String professionalName;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
@@ -25,6 +26,9 @@ public class AppointmentResponseDTO {
     public String getServiceName() { return serviceName; }
     public void setServiceName(String serviceName) { this.serviceName = serviceName; }
     
+    public UUID getProfessionalId() { return professionalId; }
+    public void setProfessionalId(UUID professionalId) { this.professionalId = professionalId; }
+
     public String getProfessionalName() { return professionalName; }
     public void setProfessionalName(String professionalName) { this.professionalName = professionalName; }
     

@@ -59,8 +59,11 @@ $svcId = $svcResponse.id
 $svcResponse | ConvertTo-Json
 
 Write-Host "`n=== 6. Create Appointment ==="
-# Calculate a start time in the future (next day at 10:00 AM) to avoid validation errors
-$startTime = (Get-Date).AddDays(1).ToString("yyyy-MM-ddT10:00:00")
+# Next weekday at 10:00: a new salon opens Mon-Fri, 08:00-18:00
+$aptDay = (Get-Date).AddDays(1)
+while ($aptDay.DayOfWeek -eq 'Saturday' -or $aptDay.DayOfWeek -eq 'Sunday') { $aptDay = $aptDay.AddDays(1) }
+$aptDate = $aptDay.ToString("yyyy-MM-dd")
+$startTime = "$($aptDate)T10:00:00"
 $aptBody = "{`"customerId`": `"$custId`", `"professionalId`": `"$profId`", `"serviceId`": `"$svcId`", `"startTime`": `"$startTime`"}"
 $aptResponse = Invoke-With-Error-Handling -Uri "$baseUrl/appointments" -Method Post -Body $aptBody -Headers $headers
 $aptResponse | ConvertTo-Json
@@ -97,7 +100,7 @@ $updateS = Invoke-With-Error-Handling -Uri "$baseUrl/services/$svcId" -Method Pu
 $updateS | ConvertTo-Json
 
 Write-Host "`n=== 10. List Appointments ==="
-$listApt = Invoke-With-Error-Handling -Uri "$baseUrl/appointments" -Method Get -Headers $headers
+$listApt = Invoke-With-Error-Handling -Uri "$baseUrl/appointments?date=$aptDate" -Method Get -Headers $headers
 $listApt | ConvertTo-Json
 
 Write-Host "`n=== 11. Update Appointment Status ==="

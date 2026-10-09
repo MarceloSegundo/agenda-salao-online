@@ -26,10 +26,10 @@ Visão geral dos componentes e do modelo de domínio: [`docs/wiki/architecture.m
 |---|---|---|
 | Salão (tenant) | `POST /api/tenants/register` | Não |
 | Login | `POST /api/auth/login` | Não |
-| Clientes | `/api/customers` | JWT |
+| Clientes | `/api/customers` (busca com `?search=`) | JWT |
 | Profissionais | `/api/professionals` | JWT |
 | Serviços | `/api/services` | JWT |
-| Agendamentos | `/api/appointments` | JWT |
+| Agendamentos | `/api/appointments?date=aaaa-mm-dd` (agenda do dia), `/api/appointments/availability` (horários livres) | JWT |
 
 Com o backend rodando, a documentação interativa fica em `http://localhost:8080/swagger-ui.html`.
 
