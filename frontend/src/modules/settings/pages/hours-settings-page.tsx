@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Clock, Save, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router';
 import { tenantApi, type BusinessHour } from '../api/tenant';
-import { Button, Input } from '../../../shared/components';
+import { Button, Input, toast } from '../../../shared/components';
+import { getApiErrorMessage } from '../../../shared/api-client/errors';
 
 const DAYS_OF_WEEK = [
   { value: 1, label: 'Segunda-feira' },
@@ -25,7 +26,6 @@ const DEFAULT_HOURS: BusinessHour[] = DAYS_OF_WEEK.map(day => ({
 export function HoursSettingsPage() {
   const queryClient = useQueryClient();
   const [businessHours, setBusinessHours] = useState<BusinessHour[]>(DEFAULT_HOURS);
-  const [successMessage, setSuccessMessage] = useState('');
 
   const { data: tenant, isLoading } = useQuery({
     queryKey: ['tenant-settings'],
@@ -48,11 +48,10 @@ export function HoursSettingsPage() {
     mutationFn: tenantApi.updateSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenant-settings'] });
-      setSuccessMessage('Horários atualizados com sucesso!');
-      setTimeout(() => setSuccessMessage(''), 3000);
+      toast.success('Horários atualizados.');
     },
-    onError: () => {
-      alert('Erro ao atualizar horários.');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Não foi possível salvar os horários.'));
     }
   });
 
@@ -109,12 +108,6 @@ export function HoursSettingsPage() {
                 </div>
               </div>
 
-              {successMessage && (
-                <div className="mb-6 p-4 bg-emerald-50 text-emerald-700 rounded-xl border border-emerald-100 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                  {successMessage}
-                </div>
-              )}
               
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-4 divide-y divide-slate-100">

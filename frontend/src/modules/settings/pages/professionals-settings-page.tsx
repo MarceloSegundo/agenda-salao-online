@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronLeft, Plus, Users, Pencil, Trash2, CheckCircle2 } from 'lucide-react';
+import { ChevronLeft, Plus, Users, Pencil, Trash2 } from 'lucide-react';
 import { Link } from 'react-router';
-import { useEffect } from 'react';
 import { professionalsApi } from '../api/professionals';
 import type { ProfessionalData, ProfessionalRequest } from '../api/professionals';
 import { ProfessionalFormSheet } from '../components/ProfessionalFormSheet';
-import { ConfirmDialog } from '../../../shared/components';
+import { ConfirmDialog, toast } from '../../../shared/components';
+import { getApiErrorMessage } from '../../../shared/api-client/errors';
 
 export function ProfessionalsSettingsPage() {
   const queryClient = useQueryClient();
@@ -14,16 +14,7 @@ export function ProfessionalsSettingsPage() {
   const [selectedProfessional, setSelectedProfessional] = useState<ProfessionalData | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [confirmState, setConfirmState] = useState<{ isOpen: boolean; id?: number }>({ isOpen: false });
-
-  // Auto-hide success message after 3 seconds
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(null), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
 
   const { data: professionals, isLoading } = useQuery({
     queryKey: ['professionals'],
@@ -35,16 +26,10 @@ export function ProfessionalsSettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professionals'] });
       setIsSheetOpen(false);
-      setSuccessMessage('Profissional cadastrado com sucesso!');
+      toast.success('Profissional cadastrado com sucesso!');
     },
-    onError: (error: any) => {
-      const errResponse = error.response?.data;
-      if (typeof errResponse === 'object' && errResponse !== null) {
-        const messages = Object.values(errResponse).join(', ');
-        setFormError(messages || 'Ocorreu um erro ao cadastrar.');
-      } else {
-        setFormError(errResponse || 'Ocorreu um erro ao cadastrar.');
-      }
+    onError: (error) => {
+      setFormError(getApiErrorMessage(error, 'Ocorreu um erro ao cadastrar.'));
     }
   });
 
@@ -53,16 +38,10 @@ export function ProfessionalsSettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professionals'] });
       setIsSheetOpen(false);
-      setSuccessMessage('Profissional atualizado com sucesso!');
+      toast.success('Profissional atualizado com sucesso!');
     },
-    onError: (error: any) => {
-      const errResponse = error.response?.data;
-      if (typeof errResponse === 'object' && errResponse !== null) {
-        const messages = Object.values(errResponse).join(', ');
-        setFormError(messages || 'Ocorreu um erro ao atualizar.');
-      } else {
-        setFormError(errResponse || 'Ocorreu um erro ao atualizar.');
-      }
+    onError: (error) => {
+      setFormError(getApiErrorMessage(error, 'Ocorreu um erro ao atualizar.'));
     }
   });
 
@@ -70,7 +49,10 @@ export function ProfessionalsSettingsPage() {
     mutationFn: professionalsApi.deleteProfessional,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['professionals'] });
-      setSuccessMessage('Profissional desativado com sucesso!');
+      toast.success('Profissional desativado com sucesso!');
+    },
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Não foi possível desativar.'));
     }
   });
 
@@ -134,12 +116,6 @@ export function ProfessionalsSettingsPage() {
           </div>
         ) : (
           <div className="max-w-2xl mx-auto space-y-6">
-            {successMessage && (
-              <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center gap-3 text-emerald-800 animate-in fade-in slide-in-from-top-4">
-                <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                <p className="font-medium">{successMessage}</p>
-              </div>
-            )}
             
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">

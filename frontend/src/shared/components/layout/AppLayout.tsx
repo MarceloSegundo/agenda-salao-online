@@ -1,5 +1,6 @@
 import { Outlet, Navigate } from 'react-router';
 import { BottomTabBar } from './BottomTabBar';
+import { Toaster } from '../toast';
 
 export function AppLayout() {
   // Simple check for authentication
@@ -20,6 +21,7 @@ export function AppLayout() {
 
       {/* Navigation */}
       <BottomTabBar />
+      <Toaster />
     </div>
   );
 }

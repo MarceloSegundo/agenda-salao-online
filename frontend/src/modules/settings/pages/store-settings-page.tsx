@@ -3,7 +3,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronLeft, Store, Save } from 'lucide-react';
 import { Link } from 'react-router';
 import { tenantApi } from '../api/tenant';
-import { Button, Input, Label } from '../../../shared/components';
+import { Button, Input, Label, toast } from '../../../shared/components';
+import { getApiErrorMessage } from '../../../shared/api-client/errors';
 
 export function StoreSettingsPage() {
   const queryClient = useQueryClient();
@@ -24,10 +25,10 @@ export function StoreSettingsPage() {
     mutationFn: tenantApi.updateSettings,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['tenant-settings'] });
-      alert('Dados da loja atualizados com sucesso!');
+      toast.success('Dados do salão atualizados.');
     },
-    onError: () => {
-      alert('Erro ao atualizar dados.');
+    onError: (error) => {
+      toast.error(getApiErrorMessage(error, 'Não foi possível salvar os dados do salão.'));
     }
   });
 
