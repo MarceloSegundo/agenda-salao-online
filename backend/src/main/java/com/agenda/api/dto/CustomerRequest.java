@@ -9,7 +9,8 @@ public record CustomerRequest(
         String name,
         
         @NotBlank(message = "Telefone é obrigatório")
-        @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Telefone em formato inválido")
+        // Aceita formatação comum; o serviço guarda só os dígitos
+        @Pattern(regexp = "^\\+?[0-9 ().-]{8,25}$", message = "Telefone em formato inválido")
         String phone,
         
         @Email(message = "E-mail inválido")

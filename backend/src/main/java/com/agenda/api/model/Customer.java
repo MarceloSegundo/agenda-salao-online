@@ -4,9 +4,10 @@ import com.agenda.api.model.base.BaseTenantEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "customers")
+@Table(name = "customers", uniqueConstraints = @UniqueConstraint(name = "uk_customers_tenant_phone", columnNames = {"tenant_id", "phone"}))
 public class Customer extends BaseTenantEntity {
 
     @Column(nullable = false)

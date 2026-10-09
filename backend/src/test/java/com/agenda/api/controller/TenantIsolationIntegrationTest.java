@@ -122,6 +122,22 @@ public class TenantIsolationIntegrationTest {
         assertThat(idsFrom(tokenA, "/api/professionals")).contains(professionalA);
     }
 
+    @Test
+    void customerSearchOnlyReturnsOwnCustomers() {
+        assertThat(idsFrom(tokenB, "/api/customers?search=Cliente")).doesNotContain(customerA);
+        assertThat(idsFrom(tokenB, "/api/customers")).doesNotContain(customerA);
+        assertThat(idsFrom(tokenA, "/api/customers?search=Cliente")).contains(customerA);
+    }
+
+    @Test
+    void otherTenantCannotUpdateCustomer() {
+        assertNotFound(call(tokenB, HttpMethod.PUT, "/api/customers/" + customerA,
+                Map.of("name", "Sequestrado", "phone", "5586999990099")));
+
+        Map<?, ?> customer = call(tokenA, HttpMethod.GET, "/api/customers/" + customerA, null).getBody();
+        assertThat(customer.get("name")).isEqualTo("Cliente do A");
+    }
+
     private String registerAndLogin(String salonName) {
         String email = "admin-" + UUID.randomUUID() + "@teste.com";
 
