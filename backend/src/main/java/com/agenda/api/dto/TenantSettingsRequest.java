@@ -1,16 +1,15 @@
 package com.agenda.api.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import java.time.LocalTime;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
+import java.util.List;
 
+/**
+ * Atualização parcial (PATCH): campos nulos mantêm o valor atual.
+ */
 public record TenantSettingsRequest(
-        @NotBlank(message = "Nome do salão é obrigatório")
+        @Pattern(regexp = ".*\\S.*", message = "Nome do salão não pode ficar em branco")
         String salonName,
 
-        @NotNull(message = "Horário de abertura é obrigatório")
-        LocalTime openingTime,
-
-        @NotNull(message = "Horário de fechamento é obrigatório")
-        LocalTime closingTime
+        List<@Valid BusinessHourDto> businessHours
 ) {}

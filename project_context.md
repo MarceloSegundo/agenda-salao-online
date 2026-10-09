@@ -40,7 +40,16 @@ A API já está pronta, validada e servindo dados corretamente. Os próximos obj
    - `/app/clientes` - Cadastrar/Listar Clientes.
    - `/app/configuracoes` - Cadastrar/Listar Profissionais e Serviços.
 
-## 6. Dicas para a Próxima IA
+## 6. Decisões de Design e UI (Frontend)
+- **Soft Delete:** A exclusão de Profissionais e Serviços é feita através da inativação (`active = false`), com uma opção na interface (checkbox) para visualizar ou ocultar os registros desativados.
+- **Formulários:** O uso de _Sheets_ (painéis laterais/inferiores usando `@radix-ui/react-dialog`) foi escolhido para os formulários de criação e edição, evitando trocas excessivas de página.
+- **Confirmações e Notificações:** Alertas nativos (`window.confirm`) foram substituídos por um componente customizado `ConfirmDialog` usando Radix UI. Alertas de sucesso e mensagens de erro de validação (ex: campos obrigatórios não preenchidos devolvidos pela API) são renderizados de forma não-intrusiva diretamente no formulário ou na tela de listagem.
+- **Máscaras e Entradas de Dados:** Entradas sensíveis, como o valor em Reais (R$) nos formulários, usam formatação automática estilo aplicativo de banco (ex: digitar `5000` transforma automaticamente para `50,00`).
+- **TODOs Futuros:**
+  - Criar CRUD e relacionamento de **Especialidades** para melhorar os relatórios (atualmente é um campo texto no Profissional - `specialization`).
+  - Implementar upload de **Foto de Perfil** para os profissionais.
+
+## 7. Dicas para a Próxima IA
 - O projeto usa `java.util.UUID` para os IDs principais.
 - O campo `active` (booleano) é obrigatório ao enviar o JSON de `Professional`.
 - O campo `requiresOnlinePayment` (booleano) é obrigatório ao enviar o JSON de `Service`.

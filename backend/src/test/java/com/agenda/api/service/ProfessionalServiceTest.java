@@ -40,7 +40,7 @@ public class ProfessionalServiceTest {
         professional.setSpecialization("Barbeiro");
         professional.setActive(true);
 
-        request = new ProfessionalRequest("Carlos", "Barbeiro", true);
+        request = new ProfessionalRequest("Carlos", "Barbeiro", true, java.util.List.of());
     }
 
     @Test

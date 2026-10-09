@@ -2,7 +2,10 @@ package com.agenda.api.model;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
+import com.agenda.api.model.base.BusinessHour;
 
 @Entity
 @Table(name = "tenants")
@@ -20,11 +23,9 @@ public class Tenant {
 
     private boolean active = true;
 
-    @Column(name = "opening_time")
-    private java.time.LocalTime openingTime = java.time.LocalTime.of(8, 0); // Default 08:00
-
-    @Column(name = "closing_time")
-    private java.time.LocalTime closingTime = java.time.LocalTime.of(18, 0); // Default 18:00
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "tenant_business_hours", joinColumns = @JoinColumn(name = "tenant_id"))
+    private List<BusinessHour> businessHours = new ArrayList<>();
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -47,11 +48,8 @@ public class Tenant {
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
     
-    public java.time.LocalTime getOpeningTime() { return openingTime; }
-    public void setOpeningTime(java.time.LocalTime openingTime) { this.openingTime = openingTime; }
-    
-    public java.time.LocalTime getClosingTime() { return closingTime; }
-    public void setClosingTime(java.time.LocalTime closingTime) { this.closingTime = closingTime; }
+    public List<BusinessHour> getBusinessHours() { return businessHours; }
+    public void setBusinessHours(List<BusinessHour> businessHours) { this.businessHours = businessHours; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

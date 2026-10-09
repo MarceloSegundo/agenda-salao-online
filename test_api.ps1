@@ -47,7 +47,7 @@ $custId = $custResponse.id
 $custResponse | ConvertTo-Json
 
 Write-Host "`n=== 4. Create Professional ==="
-$profBody = '{"name": "Profissional Um", "email": "prof1' + $suffix + '@test.com", "phone": "11888888888", "active": true}'
+$profBody = '{"name": "Profissional Um", "email": "prof1' + $suffix + '@test.com", "phone": "11888888888", "active": true, "businessHours": [{"dayOfWeek": 1, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 2, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 3, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 4, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 5, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 6, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 7, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false}]}'
 $profResponse = Invoke-With-Error-Handling -Uri "$baseUrl/professionals" -Method Post -Body $profBody -Headers $headers
 $profId = $profResponse.id
 $profResponse | ConvertTo-Json
@@ -79,7 +79,7 @@ $listP = Invoke-With-Error-Handling -Uri "$baseUrl/professionals" -Method Get -H
 $listP | ConvertTo-Json
 
 Write-Host "`n=== 8.2. Update Professional ==="
-$updatePBody = '{"name": "Profissional Um Atualizado", "email": "prof1' + $suffix + '@test.com", "phone": "11888888888", "active": true}'
+$updatePBody = '{"name": "Profissional Um Atualizado", "email": "prof1' + $suffix + '@test.com", "phone": "11888888888", "active": true, "businessHours": [{"dayOfWeek": 1, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 2, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 3, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 4, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 5, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 6, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false},{"dayOfWeek": 7, "openingTime": "09:00:00", "closingTime": "18:00:00", "isClosed": false}]}'
 $updateP = Invoke-With-Error-Handling -Uri "$baseUrl/professionals/$profId" -Method Put -Body $updatePBody -Headers $headers
 $updateP | ConvertTo-Json
 
@@ -110,7 +110,7 @@ $getTenant = Invoke-With-Error-Handling -Uri "$baseUrl/tenants/me" -Method Get -
 $getTenant | ConvertTo-Json
 
 Write-Host "`n=== 13. Update Tenant Settings ==="
-$updateTenantBody = '{"salonName": "Salao Teste ' + $suffix + ' Atualizado", "openingTime": "09:00:00", "closingTime": "19:00:00"}'
+$updateTenantBody = '{"salonName": "Salao Teste ' + $suffix + ' Atualizado", "businessHours": [{"dayOfWeek": 1, "openingTime": "08:00:00", "closingTime": "19:00:00", "isClosed": false},{"dayOfWeek": 2, "openingTime": "08:00:00", "closingTime": "19:00:00", "isClosed": false},{"dayOfWeek": 3, "openingTime": "08:00:00", "closingTime": "19:00:00", "isClosed": false},{"dayOfWeek": 4, "openingTime": "08:00:00", "closingTime": "19:00:00", "isClosed": false},{"dayOfWeek": 5, "openingTime": "08:00:00", "closingTime": "19:00:00", "isClosed": false},{"dayOfWeek": 6, "openingTime": "08:00:00", "closingTime": "19:00:00", "isClosed": false},{"dayOfWeek": 7, "openingTime": "08:00:00", "closingTime": "19:00:00", "isClosed": false}]}'
 $updateTenant = Invoke-With-Error-Handling -Uri "$baseUrl/tenants/settings" -Method Patch -Body $updateTenantBody -Headers $headers
 $updateTenant | ConvertTo-Json
 

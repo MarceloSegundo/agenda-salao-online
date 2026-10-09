@@ -11,7 +11,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.DayOfWeek;
 import java.util.List;
+import com.agenda.api.model.base.BusinessHour;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -66,9 +68,27 @@ public class AppointmentService {
 
         LocalTime startLocalTime = startTime.toLocalTime();
         LocalTime endLocalTime = endTime.toLocalTime();
+        int dayOfWeekInt = startTime.getDayOfWeek().getValue(); // 1 (Monday) to 7 (Sunday)
 
-        if (startLocalTime.isBefore(tenant.getOpeningTime()) || endLocalTime.isAfter(tenant.getClosingTime())) {
-            throw new BusinessException("O horário agendado está fora do horário de funcionamento do salão.");
+        // Encontrar horário do profissional ou usar o da loja
+        BusinessHour businessHour = professional.getBusinessHours().stream()
+                .filter(bh -> bh.getDayOfWeek() == dayOfWeekInt)
+                .findFirst()
+                .orElse(null);
+
+        if (businessHour == null) {
+            businessHour = tenant.getBusinessHours().stream()
+                    .filter(bh -> bh.getDayOfWeek() == dayOfWeekInt)
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        if (businessHour == null || businessHour.isClosed()) {
+            throw new BusinessException("O salão ou o profissional não está disponível neste dia.");
+        }
+
+        if (startLocalTime.isBefore(businessHour.getOpeningTime()) || endLocalTime.isAfter(businessHour.getClosingTime())) {
+            throw new BusinessException("O horário agendado está fora do horário de funcionamento.");
         }
 
         boolean hasOverlap = appointmentRepository.hasOverlappingAppointment(

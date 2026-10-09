@@ -1,8 +1,10 @@
 package com.agenda.api.service;
 
+import com.agenda.api.dto.BusinessHourDto;
 import com.agenda.api.dto.TenantRegistrationRequest;
 import com.agenda.api.exception.BusinessException;
 import com.agenda.api.model.Tenant;
+import com.agenda.api.model.base.BusinessHour;
 import com.agenda.api.model.User;
 import com.agenda.api.repository.TenantRepository;
 import com.agenda.api.repository.UserRepository;
@@ -49,6 +51,19 @@ public class TenantService {
         }
         tenant.setDomain(domainSlug);
         
+        // Criar horários padrão de Seg a Sex
+        java.util.List<BusinessHour> defaultHours = new java.util.ArrayList<>();
+        for (int i = 1; i <= 7; i++) {
+            boolean isWeekend = (i == 6 || i == 7);
+            defaultHours.add(new BusinessHour(
+                i,
+                java.time.LocalTime.of(8, 0),
+                java.time.LocalTime.of(18, 0),
+                isWeekend // Fechado nos fins de semana por padrão
+            ));
+        }
+        tenant.setBusinessHours(defaultHours);
+        
         tenant = tenantRepository.save(tenant);
 
         // Criar o Usuário Administrador vinculado ao Salão
@@ -85,9 +100,19 @@ public class TenantService {
         Tenant tenant = tenantRepository.findById(tenantId)
                 .orElseThrow(() -> new BusinessException("Tenant não encontrado."));
                 
-        tenant.setName(request.salonName());
-        tenant.setOpeningTime(request.openingTime());
-        tenant.setClosingTime(request.closingTime());
+        if (request.salonName() != null) {
+            tenant.setName(request.salonName().trim());
+        }
+
+        if (request.businessHours() != null) {
+            java.util.List<BusinessHour> updatedHours = request.businessHours().stream()
+                .map(dto -> new BusinessHour(dto.dayOfWeek(), dto.openingTime(), dto.closingTime(), dto.isClosed()))
+                .toList();
+            
+            // Hibernate clears and inserts since it's an ElementCollection
+            tenant.getBusinessHours().clear();
+            tenant.getBusinessHours().addAll(updatedHours);
+        }
         
         tenant = tenantRepository.save(tenant);
         return mapToResponse(tenant);
@@ -98,8 +123,9 @@ public class TenantService {
                 tenant.getId(),
                 tenant.getName(),
                 tenant.getDomain(),
-                tenant.getOpeningTime(),
-                tenant.getClosingTime(),
+                tenant.getBusinessHours() != null ? tenant.getBusinessHours().stream()
+                    .map(bh -> new BusinessHourDto(bh.getDayOfWeek(), bh.getOpeningTime(), bh.getClosingTime(), bh.isClosed()))
+                    .toList() : java.util.List.of(),
                 tenant.isActive()
         );
     }
