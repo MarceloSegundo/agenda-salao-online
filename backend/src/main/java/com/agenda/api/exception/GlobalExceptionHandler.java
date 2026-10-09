@@ -7,7 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -149,5 +152,60 @@ public class GlobalExceptionHandler {
                 traceId
         );
         return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiErrorResponse> handleConflictException(ConflictException ex, HttpServletRequest request) {
+        String traceId = MDC.get(MdcFilter.TRACE_ID_KEY);
+        logger.warn("Conflict [traceId={}]: {}", traceId, ex.getMessage());
+
+        ApiErrorResponse error = new ApiErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI(),
+                traceId,
+                ex.getDetails()
+        );
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiErrorResponse> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex, HttpServletRequest request) {
+        String traceId = MDC.get(MdcFilter.TRACE_ID_KEY);
+        logger.warn("Method Not Allowed [traceId={}]: {}", traceId, ex.getMessage());
+
+        ApiErrorResponse error = new ApiErrorResponse(
+                HttpStatus.METHOD_NOT_ALLOWED.value(),
+                "Method Not Allowed",
+                "Método " + ex.getMethod() + " não é suportado nesta rota.",
+                request.getRequestURI(),
+                traceId
+        );
+        return new ResponseEntity<>(error, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
+        return badRequest("Parâmetro inválido: " + ex.getName(), request);
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ApiErrorResponse> handleMissingParameter(MissingServletRequestParameterException ex, HttpServletRequest request) {
+        return badRequest("Parâmetro obrigatório ausente: " + ex.getParameterName(), request);
+    }
+
+    private ResponseEntity<ApiErrorResponse> badRequest(String message, HttpServletRequest request) {
+        String traceId = MDC.get(MdcFilter.TRACE_ID_KEY);
+        logger.warn("Bad Request [traceId={}]: {}", traceId, message);
+
+        ApiErrorResponse error = new ApiErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                message,
+                request.getRequestURI(),
+                traceId
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 }
