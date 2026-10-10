@@ -4,6 +4,28 @@
   --color-primary-500: #6366f1; /* Indigo 500 */
 }
 
+/* Feedback de toque: no celular não há hover, então botões e links "afundam" ao serem pressionados.
+   Fora de @layer de propósito, para valer sobre as classes transition-* do Tailwind. Entra rápido e
+   sai devagar, para o toque curto também aparecer. */
+:is(button, [role="button"], a[href]):not(:disabled) {
+  -webkit-tap-highlight-color: transparent;
+  transition-property: color, background-color, border-color, box-shadow, opacity, scale;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+:is(button, [role="button"], a[href]):not(:disabled):active {
+  scale: 0.96;
+  transition-duration: 50ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(button, [role="button"], a[href]):not(:disabled):active {
+    scale: none;
+    opacity: 0.7;
+  }
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
