@@ -8,7 +8,8 @@ spring:
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
+      # O schema vem das migrações em db/migration (Flyway); o Hibernate só confere se as entidades batem
+      ddl-auto: validate
     show-sql: true
     properties:
       hibernate:

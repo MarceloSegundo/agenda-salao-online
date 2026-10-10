@@ -7,7 +7,7 @@ Plataforma SaaS de agendamento para salões de beleza, barbearias e spas. Cada s
 ## Stack
 
 - **Backend:** Java 21, Spring Boot 3.4, Spring Security com JWT stateless, Spring Data JPA, springdoc-openapi (Swagger)
-- **Banco:** PostgreSQL 15 (H2 em memória nos testes)
+- **Banco:** PostgreSQL 15, schema versionado com Flyway (H2 em modo PostgreSQL nos testes, com as mesmas migrações)
 - **Notificações:** microsserviço Node.js com `whatsapp-web.js`
 - **Frontend:** React, Vite, Tailwind CSS v4 (em andamento)
 
@@ -57,10 +57,9 @@ Testes unitários dos serviços (JUnit 5 + Mockito) e testes de integração do 
 
 ## Próximos passos
 
-Os débitos técnicos conhecidos, com a solução planejada para cada um, estão em [`docs/wiki/technical_debt.md`](docs/wiki/technical_debt.md). Em resumo, mais a troca do schema gerado pelo Hibernate por migrações versionadas:
+Os débitos técnicos conhecidos, com a solução planejada para cada um, estão em [`docs/wiki/technical_debt.md`](docs/wiki/technical_debt.md). Em resumo:
 
 - notificações hoje síncronas → eventos do Spring com listener `@Async`;
 - JWT guardado no `localStorage` do frontend → cookie `HttpOnly` e `Secure`;
 - login e cadastro sem rate limiting → Bucket4j por IP;
-- mensagens fixas no código → `messages.properties` e suporte a i18n;
-- schema gerado pelo Hibernate → migrações versionadas com Flyway.
+- mensagens fixas no código → `messages.properties` e suporte a i18n.

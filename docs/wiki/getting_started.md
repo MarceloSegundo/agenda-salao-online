@@ -20,7 +20,17 @@ Welcome to the **Agenda Salão Online** project! This guide will help you set up
 
 1. Ensure PostgreSQL is running.
 2. Create a database named `agendadb`.
-3. The backend will automatically run migrations (currently via `hibernate.ddl-auto: update`, moving to Flyway/Liquibase soon).
+3. On startup the backend applies the Flyway migrations in `backend/src/main/resources/db/migration`. Hibernate only validates the schema (`ddl-auto: validate`), so every schema change needs a new `V<n>__description.sql` file; never edit a migration that has already been applied.
+
+### Database created before Flyway
+
+A database created by the old `ddl-auto: update` already has the tables but no `flyway_schema_history`, so Flyway refuses to start ("Found non-empty schema(s) ... but no schema history table"). Adopt it once:
+
+1. Run `backend/scripts/adotar-flyway-banco-existente.sql` (renames the Hibernate-generated constraint names to the ones in `V1__schema_inicial.sql`):
+   ```bash
+   docker exec -i agenda_db psql -U postgres -d agendadb < backend/scripts/adotar-flyway-banco-existente.sql
+   ```
+2. Start the backend once with `SPRING_FLYWAY_BASELINE_ON_MIGRATE=true`. Flyway records V1 as already applied without running it. Later starts don't need the variable.
 
 ## 2. Setting up the Backend
 
@@ -55,7 +65,7 @@ Welcome to the **Agenda Salão Online** project! This guide will help you set up
   cd backend
   ./mvnw test
   ```
-  The tests use an in-memory H2 database.
+  The tests use an in-memory H2 database in PostgreSQL mode, built by the same Flyway migrations, so a migration that doesn't match the entities fails the build.
 
 - **Making API Calls:**
   Register a salon (`POST /api/tenants/register`), log in (`POST /api/auth/login`) and send the returned token. The salon (tenant) is taken from the token; there is no tenant header.
