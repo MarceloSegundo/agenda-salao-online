@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
 import { AgendaDayCarousel } from '../components/AgendaDayCarousel';
 import { AgendaList } from '../components/AgendaList';
-import { NewAppointmentSheet } from '../components/NewAppointmentSheet';
+import { NewAppointmentSheet } from '../components/new-appointment/NewAppointmentSheet';
 import { appointmentsApi } from '../api/appointments';
 import type { AppointmentStatus } from '../api/appointments';
 import { toast } from '../../../shared/components';
@@ -72,7 +72,7 @@ export function AgendaPage() {
       <NewAppointmentSheet
         isOpen={isSheetOpen}
         onOpenChange={setIsSheetOpen}
-        date={selectedDate}
+        initialDate={selectedDate}
         onCreated={handleCreated}
       />
     </div>
