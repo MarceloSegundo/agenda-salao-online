@@ -17,10 +17,14 @@ public interface CustomerRepository extends TenantScopedRepository<Customer> {
 
     List<Customer> findAllByOrderByNameAsc(Pageable pageable);
 
-    @Query("select c from Customer c where lower(c.name) like lower(concat('%', :term, '%')) order by c.name")
+    // Nome em minúsculas e sem acento; translate existe no PostgreSQL e no H2. O termo chega já normalizado.
+    String UNACCENTED_NAME = "function('translate' as String, lower(c.name), "
+            + "'áàâãäåéèêëíìîïóòôõöúùûüçñý', 'aaaaaaeeeeiiiiooooouuuucny')";
+
+    @Query("select c from Customer c where " + UNACCENTED_NAME + " like concat('%', :term, '%') order by c.name")
     List<Customer> searchByName(@Param("term") String term, Pageable pageable);
 
-    @Query("select c from Customer c where lower(c.name) like lower(concat('%', :term, '%')) "
+    @Query("select c from Customer c where " + UNACCENTED_NAME + " like concat('%', :term, '%') "
             + "or c.phone like concat('%', :digits, '%') order by c.name")
     List<Customer> searchByNameOrPhone(@Param("term") String term, @Param("digits") String digits, Pageable pageable);
 }

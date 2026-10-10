@@ -39,6 +39,17 @@ public class CustomerIntegrationTest {
     }
 
     @Test
+    void searchIgnoresAccentsOnBothSides() {
+        salon.create("/api/customers", Map.of("name", "João Lima", "phone", "5586999990001"));
+        salon.create("/api/customers", Map.of("name", "Conceição", "phone", "5586999990002"));
+        salon.create("/api/customers", Map.of("name", "Bruno", "phone", "5586999990003"));
+
+        assertThat(names(salon.getList("/api/customers?search=joao"))).containsExactly("João Lima");
+        assertThat(names(salon.getList("/api/customers?search=CONCEICAO"))).containsExactly("Conceição");
+        assertThat(names(salon.getList("/api/customers?search=Jõao"))).containsExactly("João Lima");
+    }
+
+    @Test
     void searchByNameDoesNotMatchEveryoneThroughPhone() {
         salon.create("/api/customers", Map.of("name", "Ana Paula", "phone", "5586999990001"));
         salon.create("/api/customers", Map.of("name", "Bruno", "phone", "5586999990002"));

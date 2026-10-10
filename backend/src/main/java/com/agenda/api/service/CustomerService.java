@@ -12,7 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.Normalizer;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
@@ -59,9 +61,10 @@ public class CustomerService {
             customers = customerRepository.findAllByOrderByNameAsc(SEARCH_LIMIT);
         } else {
             String digits = digitsOnly(term);
+            String name = unaccentedLowerCase(term.trim());
             customers = digits.isEmpty()
-                    ? customerRepository.searchByName(term.trim(), SEARCH_LIMIT)
-                    : customerRepository.searchByNameOrPhone(term.trim(), digits, SEARCH_LIMIT);
+                    ? customerRepository.searchByName(name, SEARCH_LIMIT)
+                    : customerRepository.searchByNameOrPhone(name, digits, SEARCH_LIMIT);
         }
         return customers.stream().map(this::mapToResponse).toList();
     }
@@ -91,6 +94,11 @@ public class CustomerService {
 
     private static String digitsOnly(String value) {
         return value.replaceAll("\\D", "");
+    }
+
+    // "João" -> "joao": mesma normalização que a consulta aplica ao nome
+    private static String unaccentedLowerCase(String value) {
+        return Normalizer.normalize(value, Normalizer.Form.NFD).replaceAll("\\p{M}", "").toLowerCase(Locale.ROOT);
     }
 
     private CustomerResponse mapToResponse(Customer customer) {
