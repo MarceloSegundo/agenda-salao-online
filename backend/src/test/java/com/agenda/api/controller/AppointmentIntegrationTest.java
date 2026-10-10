@@ -131,7 +131,8 @@ public class AppointmentIntegrationTest {
     @Test
     void pastStartTimeIsRejectedByTheSalonClockWith422() {
         // O "passado" é decidido pelo Clock do salão (America/Sao_Paulo), não pelo fuso da JVM
-        Map<String, Object> body = bookingBody(LocalDate.now().minusDays(7), "10:00");
+        // Segunda passada (dia útil): "hoje - 7" caía em fim de semana, com o salão fechado
+        Map<String, Object> body = bookingBody(monday.minusWeeks(2), "10:00");
 
         var response = salon.call(HttpMethod.POST, "/api/appointments", body);
 
