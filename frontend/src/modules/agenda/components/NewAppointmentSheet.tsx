@@ -11,12 +11,13 @@ interface NewAppointmentSheetProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   date: Date;
+  onCreated?: (date: Date) => void;
 }
 
 export function NewAppointmentSheet({ isOpen, onOpenChange, date }: NewAppointmentSheetProps) {
   const [step, setStep] = useState(1);
-  const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null);
-  const [selectedProfessionalId, setSelectedProfessionalId] = useState<number | null>(null);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [selectedProfessionalId, setSelectedProfessionalId] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
 
   const { data: services } = useQuery({

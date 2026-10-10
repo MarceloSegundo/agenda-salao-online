@@ -14,7 +14,7 @@ export function ProfessionalsSettingsPage() {
   const [selectedProfessional, setSelectedProfessional] = useState<ProfessionalData | null>(null);
   const [showInactive, setShowInactive] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [confirmState, setConfirmState] = useState<{ isOpen: boolean; id?: number }>({ isOpen: false });
+  const [confirmState, setConfirmState] = useState<{ isOpen: boolean; id?: string }>({ isOpen: false });
 
   const { data: professionals, isLoading } = useQuery({
     queryKey: ['professionals'],
@@ -77,7 +77,7 @@ export function ProfessionalsSettingsPage() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setConfirmState({ isOpen: true, id });
   };
 

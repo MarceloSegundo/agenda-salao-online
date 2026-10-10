@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Calendar } from 'lucide-react';
+import { toApiDate } from '../../../shared/utils/date';
 
 interface DayItem {
   date: Date;
@@ -9,12 +10,12 @@ interface DayItem {
 }
 
 interface AgendaDayCarouselProps {
+  selectedDate: Date;
   onSelectDate: (date: Date) => void;
 }
 
-export function AgendaDayCarousel({ onSelectDate }: AgendaDayCarouselProps) {
+export function AgendaDayCarousel({ selectedDate, onSelectDate }: AgendaDayCarouselProps) {
   const [days, setDays] = useState<DayItem[]>([]);
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const dateInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -42,11 +43,9 @@ export function AgendaDayCarousel({ onSelectDate }: AgendaDayCarouselProps) {
     }
     
     setDays(generatedDays);
-    setSelectedDate(today);
   }, []);
 
   const handleSelect = (day: DayItem) => {
-    setSelectedDate(day.date);
     onSelectDate(day.date);
   };
 
@@ -55,7 +54,6 @@ export function AgendaDayCarousel({ onSelectDate }: AgendaDayCarouselProps) {
       // Create date from YYYY-MM-DD input avoiding timezone shifts
       const [year, month, day] = e.target.value.split('-').map(Number);
       const newDate = new Date(year, month - 1, day);
-      setSelectedDate(newDate);
       onSelectDate(newDate);
     }
   };
@@ -80,7 +78,7 @@ export function AgendaDayCarousel({ onSelectDate }: AgendaDayCarouselProps) {
         </div>
 
         {days.map((day, idx) => {
-          const isSelected = selectedDate.getTime() === day.date.getTime();
+          const isSelected = toApiDate(selectedDate) === toApiDate(day.date);
           return (
             <button
               key={idx}

@@ -2,7 +2,7 @@ import { apiClient } from '../../../shared/api-client';
 import type { BusinessHour } from './tenant';
 
 export interface ProfessionalData {
-  id: number;
+  id: string;
   name: string;
   specialization: string;
   active: boolean;
@@ -27,12 +27,12 @@ export const professionalsApi = {
     return data;
   },
 
-  updateProfessional: async ({ id, data: professionalData }: { id: number; data: ProfessionalRequest }): Promise<ProfessionalData> => {
+  updateProfessional: async ({ id, data: professionalData }: { id: string; data: ProfessionalRequest }): Promise<ProfessionalData> => {
     const { data } = await apiClient.put<ProfessionalData>(`/professionals/${id}`, professionalData);
     return data;
   },
 
-  deleteProfessional: async (id: number): Promise<void> => {
+  deleteProfessional: async (id: string): Promise<void> => {
     await apiClient.delete(`/professionals/${id}`);
   }
 };

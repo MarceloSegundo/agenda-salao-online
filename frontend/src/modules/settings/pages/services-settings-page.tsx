@@ -14,7 +14,7 @@ export function ServicesSettingsPage() {
   const [showInactive, setShowInactive] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceData | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
-  const [confirmState, setConfirmState] = useState<{ isOpen: boolean; id?: number }>({ isOpen: false });
+  const [confirmState, setConfirmState] = useState<{ isOpen: boolean; id?: string }>({ isOpen: false });
 
   const { data: services, isLoading } = useQuery({
     queryKey: ['services'],
@@ -77,7 +77,7 @@ export function ServicesSettingsPage() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setConfirmState({ isOpen: true, id });
   };
 

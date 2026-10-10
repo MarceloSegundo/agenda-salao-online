@@ -1,15 +1,14 @@
-import type { Appointment } from './AppointmentCard';
+import type { AppointmentDto, AppointmentStatus } from '../api/appointments';
 import { AppointmentCard } from './AppointmentCard';
 import { CalendarX2 } from 'lucide-react';
 
 interface AgendaListProps {
-  appointments: Appointment[];
+  appointments: AppointmentDto[];
   isLoading: boolean;
-  onStatusChange: (id: string, newStatus: Appointment['status']) => void;
-  onEdit: (id: string) => void;
+  onStatusChange: (id: string, newStatus: AppointmentStatus) => void;
 }
 
-export function AgendaList({ appointments, isLoading, onStatusChange, onEdit }: AgendaListProps) {
+export function AgendaList({ appointments, isLoading, onStatusChange }: AgendaListProps) {
   if (isLoading) {
     return (
       <div className="p-4 space-y-4">
@@ -42,7 +41,6 @@ export function AgendaList({ appointments, isLoading, onStatusChange, onEdit }: 
             key={apt.id} 
             appointment={apt} 
             onStatusChange={onStatusChange}
-            onEdit={onEdit}
           />
         ))}
       </div>

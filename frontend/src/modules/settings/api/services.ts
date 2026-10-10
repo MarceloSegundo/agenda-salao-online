@@ -1,7 +1,7 @@
 import { apiClient } from '../../../shared/api-client';
 
 export interface ServiceData {
-  id: number;
+  id: string;
   name: string;
   durationMinutes: number;
   price: number;
@@ -28,12 +28,12 @@ export const servicesApi = {
     return data;
   },
 
-  updateService: async ({ id, data: serviceData }: { id: number; data: ServiceRequest }): Promise<ServiceData> => {
+  updateService: async ({ id, data: serviceData }: { id: string; data: ServiceRequest }): Promise<ServiceData> => {
     const { data } = await apiClient.put<ServiceData>(`/services/${id}`, serviceData);
     return data;
   },
 
-  deleteService: async (id: number): Promise<void> => {
+  deleteService: async (id: string): Promise<void> => {
     await apiClient.delete(`/services/${id}`);
   }
 };

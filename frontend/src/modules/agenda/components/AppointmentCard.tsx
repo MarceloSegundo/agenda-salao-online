@@ -1,20 +1,11 @@
 import { useState } from 'react';
-import { Check, X, MoreHorizontal, Clock, User, Scissors, Pencil } from 'lucide-react';
+import { Check, X, MoreHorizontal, Clock, User, Scissors } from 'lucide-react';
+import type { AppointmentDto, AppointmentStatus } from '../api/appointments';
 
-export interface Appointment {
-  id: string;
-  time: string;
-  customerName: string;
-  serviceName: string;
-  professionalName: string;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELED';
-  durationMinutes: number;
-}
 
 interface AppointmentCardProps {
-  appointment: Appointment;
-  onStatusChange: (id: string, newStatus: Appointment['status']) => void;
-  onEdit: (id: string) => void;
+  appointment: AppointmentDto;
+  onStatusChange: (id: string, newStatus: AppointmentStatus) => void;
 }
 
 const statusColors = {
@@ -31,10 +22,14 @@ const statusLabels = {
   CANCELED: 'Cancelado',
 };
 
-export function AppointmentCard({ appointment, onStatusChange, onEdit }: AppointmentCardProps) {
+export function AppointmentCard({ appointment, onStatusChange }: AppointmentCardProps) {
   const [showActions, setShowActions] = useState(false);
+  // Cancelado e concluído são finais: não há ação a oferecer
+  const hasActions = appointment.status === 'PENDING' || appointment.status === 'CONFIRMED';
 
-  const toggleActions = () => setShowActions(!showActions);
+  const toggleActions = () => {
+    if (hasActions) setShowActions(!showActions);
+  };
 
   return (
     <div className="relative mb-3 group">
@@ -46,17 +41,20 @@ export function AppointmentCard({ appointment, onStatusChange, onEdit }: Appoint
       >
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-2">
-            <span className="text-lg font-bold text-slate-800">{appointment.time}</span>
+            <span className="text-lg font-bold text-slate-800">{appointment.startTime.slice(11, 16)}</span>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider ${statusColors[appointment.status]}`}>
               {statusLabels[appointment.status]}
             </span>
           </div>
-          <button 
-            className="text-slate-400 hover:text-slate-600 p-1"
-            onClick={(e) => { e.stopPropagation(); toggleActions(); }}
-          >
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
+          {hasActions && (
+            <button
+              className="text-slate-400 hover:text-slate-600 p-1"
+              aria-label="Ações do agendamento"
+              onClick={(e) => { e.stopPropagation(); toggleActions(); }}
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -80,13 +78,6 @@ export function AppointmentCard({ appointment, onStatusChange, onEdit }: Appoint
         {/* Quick Actions Panel */}
         {showActions && (
           <div className="mt-4 pt-3 border-t border-slate-100 flex gap-2 justify-end">
-            <button 
-              onClick={(e) => { e.stopPropagation(); onEdit(appointment.id); setShowActions(false); }}
-              className="flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 mr-auto"
-            >
-              <Pencil className="w-3.5 h-3.5" />
-              Editar
-            </button>
             
             {appointment.status !== 'CANCELED' && appointment.status !== 'COMPLETED' && (
               <button 
