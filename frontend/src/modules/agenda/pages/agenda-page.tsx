@@ -6,7 +6,7 @@ import { AgendaList } from '../components/AgendaList';
 import { NewAppointmentSheet } from '../components/new-appointment/NewAppointmentSheet';
 import { appointmentsApi } from '../api/appointments';
 import type { AppointmentStatus } from '../api/appointments';
-import { toast } from '../../../shared/components';
+import { LoadError, toast } from '../../../shared/components';
 import { getApiErrorMessage } from '../../../shared/api-client/errors';
 import { toApiDate } from '../../../shared/utils/date';
 
@@ -23,7 +23,7 @@ export function AgendaPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const day = toApiDate(selectedDate);
 
-  const { data: appointments = [], isLoading } = useQuery({
+  const { data: appointments = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['appointments', day],
     queryFn: () => appointmentsApi.listByDay(day),
   });
@@ -54,11 +54,15 @@ export function AgendaPage() {
       <AgendaDayCarousel selectedDate={selectedDate} onSelectDate={setSelectedDate} />
 
       <div className="flex-1 overflow-y-auto pb-24">
-        <AgendaList
-          appointments={appointments}
-          isLoading={isLoading}
-          onStatusChange={(id, status) => statusMutation.mutate({ id, status })}
-        />
+        {isError ? (
+          <LoadError message="Não foi possível carregar a agenda." onRetry={() => refetch()} />
+        ) : (
+          <AgendaList
+            appointments={appointments}
+            isLoading={isLoading}
+            onStatusChange={(id, status) => statusMutation.mutate({ id, status })}
+          />
+        )}
       </div>
 
       <button

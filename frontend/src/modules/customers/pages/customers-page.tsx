@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Plus, Search, Users } from 'lucide-react';
 import { useState } from 'react';
-import { Input } from '../../../shared/components';
+import { Input, LoadError } from '../../../shared/components';
 import { useDebouncedValue } from '../../../shared/hooks/useDebouncedValue';
 import { formatPhone } from '../../../shared/utils/phone';
 import { customersApi } from '../api/customers';
@@ -13,7 +13,7 @@ export function CustomersPage() {
   const term = useDebouncedValue(search);
   const [sheet, setSheet] = useState<{ open: boolean; customer: Customer | null }>({ open: false, customer: null });
 
-  const { data: customers, isLoading } = useQuery({
+  const { data: customers, isLoading, isError, refetch } = useQuery({
     queryKey: ['customers', term],
     queryFn: () => customersApi.search(term),
   });
@@ -45,7 +45,9 @@ export function CustomersPage() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">
-        {isLoading ? (
+        {isError ? (
+          <LoadError message="Não foi possível carregar os clientes." onRetry={() => refetch()} />
+        ) : isLoading ? (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
               <div key={i} className="bg-slate-100 animate-pulse h-16 rounded-xl" />

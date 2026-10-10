@@ -62,7 +62,7 @@ function SheetBody({ initialDate, onCreated }: { initialDate: Date; onCreated: (
   const isAny = professionalId === ANY_PROFESSIONAL;
   const day = toApiDate(date);
   const availabilityKey = ['availability', day, service?.id, professionalId];
-  const { data: slots = [], isFetching: loadingSlots } = useQuery({
+  const { data: slots = [], isFetching: loadingSlots, isError: slotsError, refetch: refetchSlots } = useQuery({
     queryKey: availabilityKey,
     queryFn: () =>
       appointmentsApi.availability({
@@ -148,6 +148,8 @@ function SheetBody({ initialDate, onCreated }: { initialDate: Date; onCreated: (
               onDateChange={chooseDate}
               slots={slots}
               isLoading={loadingSlots}
+              isError={slotsError}
+              onRetry={() => refetchSlots()}
               selectedSlot={slot}
               onSelectSlot={setSlot}
               showProfessional={isAny}

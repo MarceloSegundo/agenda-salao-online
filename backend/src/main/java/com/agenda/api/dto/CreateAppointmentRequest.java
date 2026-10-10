@@ -15,8 +15,9 @@ public class CreateAppointmentRequest {
     @NotNull(message = "O serviço é obrigatório")
     private UUID serviceId;
 
+    // "Não pode estar no passado" é checado no AvailabilityService com o Clock do salão;
+    // @FutureOrPresent usaria o fuso da JVM (UTC em nuvem) e recusaria horários válidos de hoje
     @NotNull(message = "O horário de início é obrigatório")
-    @jakarta.validation.constraints.FutureOrPresent(message = "O horário de início não pode estar no passado")
     private LocalDateTime startTime;
 
     // Getters and Setters

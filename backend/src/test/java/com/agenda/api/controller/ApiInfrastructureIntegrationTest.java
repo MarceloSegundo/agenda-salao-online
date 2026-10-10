@@ -54,4 +54,30 @@ public class ApiInfrastructureIntegrationTest {
         assertThat(restTemplate.postForEntity("/api/appointments", body, String.class).getStatusCode())
                 .isEqualTo(HttpStatus.FORBIDDEN);
     }
+
+    @Test
+    void unreadableBodyReturns400() {
+        ApiTestClient salon = ApiTestClient.newSalon(restTemplate, "Salão Infra");
+
+        // "CANCELLED" não existe no enum (o certo é CANCELED)
+        assertThat(salon.call(HttpMethod.PATCH, "/api/appointments/" + UUID.randomUUID() + "/status",
+                Map.of("status", "CANCELLED")).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+
+    @Test
+    void unknownRouteReturns404() {
+        ApiTestClient salon = ApiTestClient.newSalon(restTemplate, "Salão Infra");
+
+        assertThat(salon.call(HttpMethod.GET, "/api/rota-que-nao-existe", null).getStatusCode())
+                .isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    void unsupportedContentTypeReturns415() {
+        ApiTestClient salon = ApiTestClient.newSalon(restTemplate, "Salão Infra");
+
+        assertThat(salon.postText("/api/customers", "nome=Maria").getStatusCode())
+                .isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+    }
 }

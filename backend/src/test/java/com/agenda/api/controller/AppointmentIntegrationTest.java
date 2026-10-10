@@ -128,6 +128,17 @@ public class AppointmentIntegrationTest {
         book(monday, "11:00");
     }
 
+    @Test
+    void pastStartTimeIsRejectedByTheSalonClockWith422() {
+        // O "passado" é decidido pelo Clock do salão (America/Sao_Paulo), não pelo fuso da JVM
+        Map<String, Object> body = bookingBody(LocalDate.now().minusDays(7), "10:00");
+
+        var response = salon.call(HttpMethod.POST, "/api/appointments", body);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
+        assertThat(response.getBody().get("message")).isEqualTo("O horário de início não pode estar no passado.");
+    }
+
     private String book(LocalDate date, String time) {
         return salon.create("/api/appointments", bookingBody(date, time));
     }

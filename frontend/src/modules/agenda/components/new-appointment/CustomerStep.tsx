@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Search, UserPlus } from 'lucide-react';
 import { useState } from 'react';
-import { Input } from '../../../../shared/components';
+import { Input, LoadError } from '../../../../shared/components';
 import { getApiErrorMessage } from '../../../../shared/api-client/errors';
 import { useDebouncedValue } from '../../../../shared/hooks/useDebouncedValue';
 import { formatPhone } from '../../../../shared/utils/phone';
@@ -22,7 +22,7 @@ export function CustomerStep({ selected, onSelect }: CustomerStepProps) {
   const [error, setError] = useState<string | null>(null);
   const [duplicate, setDuplicate] = useState<{ id: string; name: string } | null>(null);
 
-  const { data: results = [], isFetching } = useQuery({
+  const { data: results = [], isFetching, isError, refetch } = useQuery({
     queryKey: ['customers', term],
     queryFn: () => customersApi.search(term),
     enabled: !selected && term.trim().length > 0,
@@ -84,7 +84,11 @@ export function CustomerStep({ selected, onSelect }: CustomerStepProps) {
             />
           </div>
 
-          {term.trim() && (
+          {term.trim() && isError && (
+            <LoadError message="Não foi possível buscar clientes." onRetry={() => refetch()} />
+          )}
+
+          {term.trim() && !isError && (
             <div className="grid gap-2">
               {!isFetching && results.length === 0 && (
                 <p className="text-sm text-slate-500">Nenhum cliente encontrado.</p>

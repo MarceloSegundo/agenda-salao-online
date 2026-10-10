@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { LoadError } from '../../../../shared/components';
 import { toApiDate } from '../../../../shared/utils/date';
 import type { AvailableSlot } from '../../api/appointments';
 
@@ -7,6 +8,8 @@ interface WhenStepProps {
   onDateChange: (date: Date) => void;
   slots: AvailableSlot[];
   isLoading: boolean;
+  isError: boolean;
+  onRetry: () => void;
   selectedSlot: AvailableSlot | null;
   onSelectSlot: (slot: AvailableSlot) => void;
   /** Modo "qualquer profissional": mostra quem atende em cada horário. */
@@ -16,7 +19,7 @@ interface WhenStepProps {
 const DAYS_AHEAD = 15;
 const weekday = new Intl.DateTimeFormat('pt-BR', { weekday: 'short' });
 
-export function WhenStep({ date, onDateChange, slots, isLoading, selectedSlot, onSelectSlot, showProfessional }: WhenStepProps) {
+export function WhenStep({ date, onDateChange, slots, isLoading, isError, onRetry, selectedSlot, onSelectSlot, showProfessional }: WhenStepProps) {
   const days = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -55,7 +58,9 @@ export function WhenStep({ date, onDateChange, slots, isLoading, selectedSlot, o
         </div>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <LoadError message="Não foi possível carregar os horários." onRetry={onRetry} />
+      ) : isLoading ? (
         <div className="grid grid-cols-3 gap-2">
           {Array.from({ length: 6 }, (_, i) => (
             <div key={i} className="h-12 rounded-xl bg-slate-100 animate-pulse" />

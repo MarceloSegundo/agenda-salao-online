@@ -7,6 +7,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -50,6 +51,13 @@ public final class ApiTestClient {
 
     public ResponseEntity<Map> call(HttpMethod method, String path, Object body) {
         return restTemplate.exchange(path, method, new HttpEntity<>(body, headers()), Map.class);
+    }
+
+    /** POST com corpo text/plain, para testar content-type não suportado. */
+    public ResponseEntity<String> postText(String path, String body) {
+        HttpHeaders headers = headers();
+        headers.setContentType(MediaType.TEXT_PLAIN);
+        return restTemplate.exchange(path, HttpMethod.POST, new HttpEntity<>(body, headers), String.class);
     }
 
     @SuppressWarnings("unchecked")

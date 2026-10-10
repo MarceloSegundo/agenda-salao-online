@@ -7,7 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -185,6 +188,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.METHOD_NOT_ALLOWED);
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnreadableBody(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        return badRequest("Corpo da requisição inválido ou com campo em formato incorreto.", request);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoResource(NoResourceFoundException ex, HttpServletRequest request) {
+        return simpleError(HttpStatus.NOT_FOUND, "Not Found", "Rota não encontrada.", request);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiErrorResponse> handleMediaType(HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
+        return simpleError(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Unsupported Media Type",
+                "Tipo de conteúdo não suportado; envie application/json.", request);
+    }
+
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException ex, HttpServletRequest request) {
         return badRequest("Parâmetro inválido: " + ex.getName(), request);
@@ -196,16 +215,20 @@ public class GlobalExceptionHandler {
     }
 
     private ResponseEntity<ApiErrorResponse> badRequest(String message, HttpServletRequest request) {
-        String traceId = MDC.get(MdcFilter.TRACE_ID_KEY);
-        logger.warn("Bad Request [traceId={}]: {}", traceId, message);
+        return simpleError(HttpStatus.BAD_REQUEST, "Bad Request", message, request);
+    }
 
-        ApiErrorResponse error = new ApiErrorResponse(
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
+    private ResponseEntity<ApiErrorResponse> simpleError(HttpStatus status, String error, String message, HttpServletRequest request) {
+        String traceId = MDC.get(MdcFilter.TRACE_ID_KEY);
+        logger.warn("{} [traceId={}]: {}", error, traceId, message);
+
+        ApiErrorResponse body = new ApiErrorResponse(
+                status.value(),
+                error,
                 message,
                 request.getRequestURI(),
                 traceId
         );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(body, status);
     }
 }
