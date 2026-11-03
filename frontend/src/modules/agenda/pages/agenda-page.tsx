@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus } from 'lucide-react';
+import { useSearchParams } from 'react-router';
 import { AgendaDayCarousel } from '../components/AgendaDayCarousel';
 import { AgendaList } from '../components/AgendaList';
 import { NewAppointmentSheet } from '../components/new-appointment/NewAppointmentSheet';
@@ -8,7 +9,7 @@ import { appointmentsApi } from '../api/appointments';
 import type { AppointmentStatus } from '../api/appointments';
 import { LoadError, toast } from '../../../shared/components';
 import { getApiErrorMessage } from '../../../shared/api-client/errors';
-import { toApiDate } from '../../../shared/utils/date';
+import { fromApiDate, toApiDate } from '../../../shared/utils/date';
 
 const STATUS_MESSAGES: Record<AppointmentStatus, string> = {
   PENDING: 'Agendamento atualizado.',
@@ -19,7 +20,9 @@ const STATUS_MESSAGES: Record<AppointmentStatus, string> = {
 
 export function AgendaPage() {
   const queryClient = useQueryClient();
-  const [selectedDate, setSelectedDate] = useState<Date>(() => new Date());
+  const [searchParams] = useSearchParams();
+  // ?data=aaaa-mm-dd abre a agenda naquele dia (links do Dashboard); sem ou inválido, hoje
+  const [selectedDate, setSelectedDate] = useState<Date>(() => fromApiDate(searchParams.get('data')) ?? new Date());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const day = toApiDate(selectedDate);
 
@@ -32,6 +35,7 @@ export function AgendaPage() {
     mutationFn: ({ id, status }: { id: string; status: AppointmentStatus }) => appointmentsApi.updateStatus(id, status),
     onSuccess: (_, { status }) => {
       queryClient.invalidateQueries({ queryKey: ['appointments', day] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       toast.success(STATUS_MESSAGES[status]);
     },
     onError: (error) => {
@@ -42,6 +46,7 @@ export function AgendaPage() {
   /** Depois de criar: leva a agenda para o dia do agendamento, já atualizada. */
   const handleCreated = (date: Date) => {
     queryClient.invalidateQueries({ queryKey: ['appointments', toApiDate(date)] });
+    queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     setSelectedDate(date);
   };
 
