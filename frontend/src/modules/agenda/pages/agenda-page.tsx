@@ -5,18 +5,11 @@ import { useSearchParams } from 'react-router';
 import { AgendaDayCarousel } from '../components/AgendaDayCarousel';
 import { AgendaList } from '../components/AgendaList';
 import { NewAppointmentSheet } from '../components/new-appointment/NewAppointmentSheet';
-import { appointmentsApi } from '../api/appointments';
+import { appointmentsApi, STATUS_MESSAGES } from '../api/appointments';
 import type { AppointmentStatus } from '../api/appointments';
 import { LoadError, toast } from '../../../shared/components';
 import { getApiErrorMessage } from '../../../shared/api-client/errors';
 import { fromApiDate, toApiDate } from '../../../shared/utils/date';
-
-const STATUS_MESSAGES: Record<AppointmentStatus, string> = {
-  PENDING: 'Agendamento atualizado.',
-  CONFIRMED: 'Agendamento confirmado.',
-  COMPLETED: 'Agendamento concluído.',
-  CANCELED: 'Agendamento cancelado.',
-};
 
 export function AgendaPage() {
   const queryClient = useQueryClient();

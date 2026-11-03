@@ -168,6 +168,13 @@ class DashboardServiceTest {
     }
 
     @Test
+    void overdueItemsAreNotInProgress() {
+        add(carlos, MONDAY.minusDays(1).atTime(17, 0), AppointmentStatus.PENDING, "30.00");
+
+        assertThat(dashboard.today().pending().overdue().get(0).inProgress()).isFalse();
+    }
+
+    @Test
     void toConfirmUntilEndOfTomorrow() {
         add(carlos, MONDAY.atTime(11, 0), AppointmentStatus.PENDING, "30.00");
         add(carlos, MONDAY.plusDays(1).atTime(17, 0), AppointmentStatus.PENDING, "30.00");

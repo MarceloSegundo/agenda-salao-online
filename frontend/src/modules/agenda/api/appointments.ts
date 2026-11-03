@@ -2,6 +2,14 @@ import { apiClient } from '../../../shared/api-client';
 
 export type AppointmentStatus = 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELED';
 
+/** Toast de sucesso ao trocar o status, igual na Agenda e no Dashboard. */
+export const STATUS_MESSAGES: Record<AppointmentStatus, string> = {
+  PENDING: 'Agendamento atualizado.',
+  CONFIRMED: 'Agendamento confirmado.',
+  COMPLETED: 'Agendamento concluído.',
+  CANCELED: 'Agendamento cancelado.',
+};
+
 export interface AppointmentDto {
   id: string;
   customerName: string;

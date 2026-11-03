@@ -163,6 +163,6 @@ public class DashboardService {
                 appointment.getStartTime(),
                 appointment.getEndTime(),
                 appointment.getStatus(),
-                !appointment.getStartTime().isAfter(now));
+                !appointment.getStartTime().isAfter(now) && appointment.getEndTime().isAfter(now));
     }
 }
