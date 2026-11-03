@@ -121,6 +121,14 @@ public class AvailabilityService {
         }
     }
 
+    /** Se o momento cai no expediente do profissional naquele dia (interseção com o salão). */
+    public boolean isWithinWorkingHours(Tenant tenant, Professional professional, LocalDateTime moment) {
+        LocalTime time = moment.toLocalTime();
+        return workingWindow(tenant, professional, moment.getDayOfWeek())
+                .map(window -> !time.isBefore(window.open()) && time.isBefore(window.close()))
+                .orElse(false);
+    }
+
     private List<LocalTime> freeTimes(Tenant tenant, Professional professional, LocalDate date,
                                       int durationMinutes, List<Appointment> busy) {
         if (!professional.isActive()) {
