@@ -9,8 +9,10 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
@@ -31,6 +33,9 @@ public class AppointmentIntegrationTest {
 
     @Autowired
     private TestRestTemplate restTemplate;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     private ApiTestClient salon;
     private String customerId;
@@ -138,6 +143,19 @@ public class AppointmentIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNPROCESSABLE_ENTITY);
         assertThat(response.getBody().get("message")).isEqualTo("O horário de início não pode estar no passado.");
+    }
+
+    @Test
+    void priceIsKeptAfterServiceIsRepriced() {
+        String id = book(monday, "10:00");
+        salon.call(HttpMethod.PUT, "/api/services/" + serviceId, Map.of(
+                "name", "Corte", "price", 80, "durationMinutes", 30,
+                "requiresOnlinePayment", false, "active", true));
+
+        BigDecimal price = jdbcTemplate.queryForObject(
+                "select price from appointments where id = ?", BigDecimal.class, UUID.fromString(id));
+
+        assertThat(price).isEqualByComparingTo("50.00");
     }
 
     private String book(LocalDate date, String time) {

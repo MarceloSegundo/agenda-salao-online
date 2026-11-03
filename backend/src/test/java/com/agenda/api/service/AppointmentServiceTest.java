@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -96,6 +97,19 @@ public class AppointmentServiceTest {
         assertEquals(request.getStartTime().plusMinutes(60), response.getEndTime());
         verify(availabilityService).assertBookable(tenant, professional, request.getStartTime(), request.getStartTime().plusMinutes(60));
         verify(professionalRepository).findByIdForUpdate(professional.getId(), tenantId);
+    }
+
+    @Test
+    void shouldStoreServicePriceOnCreate() {
+        service.setPrice(new BigDecimal("45.00"));
+        stubCreateLookups();
+        when(appointmentRepository.save(any(Appointment.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        appointmentService.create(request);
+
+        ArgumentCaptor<Appointment> saved = ArgumentCaptor.forClass(Appointment.class);
+        verify(appointmentRepository).save(saved.capture());
+        assertEquals(new BigDecimal("45.00"), saved.getValue().getPrice());
     }
 
     @Test
