@@ -30,6 +30,7 @@ Visão geral dos componentes e do modelo de domínio: [`docs/wiki/architecture.m
 | Profissionais | `/api/professionals` | JWT |
 | Serviços | `/api/services` | JWT |
 | Agendamentos | `/api/appointments?date=aaaa-mm-dd` (agenda do dia), `/api/appointments/availability` (horários livres) | JWT |
+| Dashboard | `GET /api/dashboard/today` (operação do dia: resumo, próximo atendimento, pendências e equipe) | JWT |
 
 Com o backend rodando, a documentação interativa fica em `http://localhost:8080/swagger-ui.html`.
 
