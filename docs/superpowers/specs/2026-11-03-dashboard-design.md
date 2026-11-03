@@ -114,7 +114,7 @@ Considera-se **em aberto** o agendamento em `PENDING` ou `CONFIRMED`.
 
 | Situação | Status |
 |---|---|
-| Sem token ou token inválido | 401 (já existe) |
+| Sem token ou token inválido | 403 (comportamento atual do Spring Security para rotas protegidas) |
 | Salão do token não encontrado | 422 (`BusinessException`, como no `AvailabilityService`) |
 
 ## 6. Frontend
@@ -154,7 +154,7 @@ Tocar no cartão do próximo ou num item de pendência leva para `/app/agenda?da
 
 **Backend, unitários (`DashboardService`, `Clock` fixo):** resumo e valores (cancelado fora do previsto, só concluídos no realizado); próximo em andamento, futuro, atrasado sem baixa e inexistente; "a confirmar" até o fim de amanhã e não depois; atrasados dentro e fora dos 7 dias; limite de 20 com total real; estados `BUSY`, `FREE` e `OFF`, incluindo salão aberto com profissional fechado no dia; `nextAt` nulo sem próximos.
 
-**Backend, integração:** migração V3 roda e o `price` fica preenchido; agendamento criado grava o preço e mantém o valor depois de reajustar o serviço; `GET /api/dashboard/today` sem token dá 401; `TenantIsolationIntegrationTest` garante que o dashboard de um salão não conta agendamentos nem profissionais do outro.
+**Backend, integração:** migração V3 roda no H2 (o backfill é conferido à mão no PostgreSQL local, que tem dados); agendamento criado grava o preço e mantém o valor depois de reajustar o serviço; `GET /api/dashboard/today` sem token dá 403; `TenantIsolationIntegrationTest` garante que o dashboard de um salão não conta agendamentos nem profissionais do outro.
 
 **Frontend:** Vitest para `formatCurrency`, `whatsappLink` e `fromApiDate`. Os blocos são verificados no navegador.
 
