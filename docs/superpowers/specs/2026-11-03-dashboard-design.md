@@ -91,7 +91,7 @@ Considera-se **em aberto** o agendamento em `PENDING` ou `CONFIRMED`.
 1. **Resumo** (agendamentos com início hoje):
    - `total`: não cancelados; `canceled`: cancelados; `completed`: `COMPLETED`; `toConfirm`: `PENDING`;
    - `expectedRevenue`: soma de `price` dos não cancelados; `realizedRevenue`: soma de `price` dos `COMPLETED`.
-2. **Próximo atendimento:** entre os agendamentos de hoje em aberto com `fim > agora`, o de início mais cedo (empate pelo nome do cliente). Inclui o que está em andamento ou atrasado sem baixa. `inProgress = início ≤ agora`.
+2. **Próximo atendimento:** entre os agendamentos de hoje em aberto com `fim > agora`, o de início mais cedo (empate pelo nome do cliente). Inclui o que está em andamento ou atrasado sem baixa. `inProgress = início ≤ agora < fim` (vale para todo item da resposta; um atrasado nunca aparece como em andamento).
 3. **Pendências:**
    - *A confirmar:* `PENDING` com `início ≥ agora` e início antes do fim de amanhã (meia-noite de depois de amanhã, exclusivo).
    - *Atrasados:* em aberto com `fim ≤ agora` e início a partir de hoje − 7 dias, meia-noite.

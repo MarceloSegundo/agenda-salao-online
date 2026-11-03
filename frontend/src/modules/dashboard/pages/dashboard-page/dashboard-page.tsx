@@ -12,6 +12,7 @@ import { TeamToday } from '../../components/TeamToday';
 import { ConfirmDialog, LoadError, toast } from '../../../../shared/components';
 import { getApiErrorMessage } from '../../../../shared/api-client/errors';
 import { formatWeekdayLong, fromApiDate } from '../../../../shared/utils/date';
+import { dashboardView } from './dashboard-view';
 
 function greeting(hour: number): string {
   if (hour < 12) return 'Bom dia';
@@ -25,7 +26,7 @@ export function DashboardPage() {
   const [toCancel, setToCancel] = useState<DashboardAppointment | null>(null);
 
   // Recarrega sozinho: "próximo" e "atendendo agora" acompanham o relógio
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isError, refetch } = useQuery({
     queryKey: ['dashboard'],
     queryFn: dashboardApi.today,
     refetchInterval: 60_000,
@@ -58,16 +59,27 @@ export function DashboardPage() {
     navigate(`/app/agenda?data=${appointment.startTime.slice(0, 10)}`);
   };
 
-  if (isError) {
+  const view = dashboardView({ isError, hasData: data !== undefined });
+
+  if (view === 'error') {
     return <LoadError message="Não foi possível carregar o painel." onRetry={() => refetch()} />;
   }
 
   return (
     <div className="p-4 sm:p-6 space-y-6 bg-slate-50 min-h-full">
-      {isLoading || !data ? (
+      {view === 'loading' || !data ? (
         <DashboardSkeleton />
       ) : (
         <>
+          {view === 'stale' && (
+            <div role="status" className="flex items-center justify-between gap-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-3 py-2">
+              <span className="text-xs font-medium">Não foi possível atualizar. Mostrando os últimos dados.</span>
+              <button type="button" onClick={() => refetch()} className="text-xs font-semibold underline flex-shrink-0">
+                Tentar de novo
+              </button>
+            </div>
+          )}
+
           <header>
             <h1 className="text-2xl font-bold text-slate-800">
               {greeting(new Date().getHours())}, {data.salonName}
