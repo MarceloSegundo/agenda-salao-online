@@ -76,7 +76,7 @@ function PendingSection({ title, items, total, actions, onStatusChange, onOpen }
                   {day ? formatDayLabel(day) : ''} · {item.startTime.slice(11, 16)}
                 </p>
                 <p className="text-sm font-medium text-slate-800 truncate">{item.customerName}</p>
-                <p className="text-xs text-slate-500 truncate">{item.serviceName}</p>
+                <p className="text-xs text-slate-500 truncate">{item.serviceName} · com {item.professionalName}</p>
               </button>
               <div className="flex gap-1.5 flex-shrink-0">
                 {actions.map((action) => (

@@ -4,6 +4,11 @@ import { Plus } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { AgendaDayCarousel } from '../components/AgendaDayCarousel';
 import { AgendaList } from '../components/AgendaList';
+import { AgendaFiltersBar } from '../components/AgendaFiltersBar';
+import { EMPTY_FILTERS, filterAppointments } from '../utils/filter-appointments';
+import type { AgendaFilters } from '../utils/filter-appointments';
+import { professionalsApi } from '../../settings/api/professionals';
+import { servicesApi } from '../../settings/api/services';
 import { NewAppointmentSheet } from '../components/new-appointment/NewAppointmentSheet';
 import { appointmentsApi, STATUS_MESSAGES } from '../api/appointments';
 import type { AppointmentStatus } from '../api/appointments';
@@ -17,12 +22,18 @@ export function AgendaPage() {
   // ?data=aaaa-mm-dd abre a agenda naquele dia (links do Dashboard); sem ou inválido, hoje
   const [selectedDate, setSelectedDate] = useState<Date>(() => fromApiDate(searchParams.get('data')) ?? new Date());
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  // Os filtros continuam valendo ao trocar de dia
+  const [filters, setFilters] = useState<AgendaFilters>(EMPTY_FILTERS);
   const day = toApiDate(selectedDate);
 
   const { data: appointments = [], isLoading, isError, refetch } = useQuery({
     queryKey: ['appointments', day],
     queryFn: () => appointmentsApi.listByDay(day),
   });
+  // Opções dos filtros: cadastros do salão (mesmas chaves do painel de novo agendamento)
+  const { data: professionals = [] } = useQuery({ queryKey: ['professionals'], queryFn: professionalsApi.getProfessionals });
+  const { data: services = [] } = useQuery({ queryKey: ['services'], queryFn: servicesApi.getServices });
+  const visibleAppointments = filterAppointments(appointments, filters);
 
   const statusMutation = useMutation({
     mutationFn: ({ id, status }: { id: string; status: AppointmentStatus }) => appointmentsApi.updateStatus(id, status),
@@ -50,15 +61,25 @@ export function AgendaPage() {
       </div>
 
       <AgendaDayCarousel selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+      <AgendaFiltersBar
+        filters={filters}
+        onChange={setFilters}
+        professionals={professionals}
+        services={services}
+        shownCount={visibleAppointments.length}
+        totalCount={appointments.length}
+      />
 
       <div className="flex-1 overflow-y-auto pb-24">
         {isError ? (
           <LoadError message="Não foi possível carregar a agenda." onRetry={() => refetch()} />
         ) : (
           <AgendaList
-            appointments={appointments}
+            appointments={visibleAppointments}
             isLoading={isLoading}
             onStatusChange={(id, status) => statusMutation.mutate({ id, status })}
+            hiddenByFilters={appointments.length > 0}
+            onClearFilters={() => setFilters(EMPTY_FILTERS)}
           />
         )}
       </div>
