@@ -10,8 +10,13 @@ export interface AgendaFilters {
 
 export const EMPTY_FILTERS: AgendaFilters = { professionalId: '', status: '', serviceName: '' };
 
+/** Quantos filtros estão em uso: vai no selo do botão de filtros. */
+export function countActiveFilters(filters: AgendaFilters): number {
+  return [filters.professionalId, filters.status, filters.serviceName].filter((value) => value !== '').length;
+}
+
 export function hasActiveFilters(filters: AgendaFilters): boolean {
-  return filters.professionalId !== '' || filters.status !== '' || filters.serviceName !== '';
+  return countActiveFilters(filters) > 0;
 }
 
 export function filterAppointments(appointments: AppointmentDto[], filters: AgendaFilters): AppointmentDto[] {

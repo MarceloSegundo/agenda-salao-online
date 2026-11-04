@@ -4,8 +4,8 @@ import { Plus } from 'lucide-react';
 import { useSearchParams } from 'react-router';
 import { AgendaDayCarousel } from '../components/AgendaDayCarousel';
 import { AgendaList } from '../components/AgendaList';
-import { AgendaFiltersBar } from '../components/AgendaFiltersBar';
-import { EMPTY_FILTERS, filterAppointments } from '../utils/filter-appointments';
+import { AgendaFiltersFab } from '../components/AgendaFiltersFab';
+import { EMPTY_FILTERS, filterAppointments, hasActiveFilters } from '../utils/filter-appointments';
 import type { AgendaFilters } from '../utils/filter-appointments';
 import { professionalsApi } from '../../settings/api/professionals';
 import { servicesApi } from '../../settings/api/services';
@@ -61,16 +61,17 @@ export function AgendaPage() {
       </div>
 
       <AgendaDayCarousel selectedDate={selectedDate} onSelectDate={setSelectedDate} />
-      <AgendaFiltersBar
-        filters={filters}
-        onChange={setFilters}
-        professionals={professionals}
-        services={services}
-        shownCount={visibleAppointments.length}
-        totalCount={appointments.length}
-      />
 
-      <div className="flex-1 overflow-y-auto pb-24">
+      {/* pb-40: o último card sobe acima dos dois botões flutuantes */}
+      <div className="flex-1 overflow-y-auto pb-40">
+        {hasActiveFilters(filters) && !isError && (
+          <div className="mx-4 mt-3 -mb-1 flex items-center justify-between rounded-xl bg-indigo-50 px-3 py-2 text-xs text-indigo-700">
+            <span>Filtrando: {visibleAppointments.length} de {appointments.length}</span>
+            <button type="button" onClick={() => setFilters(EMPTY_FILTERS)} className="font-semibold underline-offset-2 hover:underline">
+              Limpar
+            </button>
+          </div>
+        )}
         {isError ? (
           <LoadError message="Não foi possível carregar a agenda." onRetry={() => refetch()} />
         ) : (
@@ -91,6 +92,15 @@ export function AgendaPage() {
       >
         <Plus className="w-6 h-6" />
       </button>
+
+      <AgendaFiltersFab
+        filters={filters}
+        onChange={setFilters}
+        professionals={professionals}
+        services={services}
+        shownCount={visibleAppointments.length}
+        totalCount={appointments.length}
+      />
 
       <NewAppointmentSheet
         isOpen={isSheetOpen}

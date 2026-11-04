@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { AppointmentDto } from '../api/appointments';
-import { EMPTY_FILTERS, filterAppointments, hasActiveFilters } from './filter-appointments';
+import { countActiveFilters, EMPTY_FILTERS, filterAppointments, hasActiveFilters } from './filter-appointments';
 
 const appointment = (id: string, overrides: Partial<AppointmentDto>): AppointmentDto => ({
   id,
@@ -44,6 +44,14 @@ describe('filterAppointments', () => {
   it('combina os filtros', () => {
     expect(ids(filterAppointments(day, { professionalId: 'ana', status: 'PENDING', serviceName: 'Corte' }))).toEqual(['1']);
     expect(ids(filterAppointments(day, { professionalId: 'ana', status: 'CONFIRMED', serviceName: '' }))).toEqual([]);
+  });
+});
+
+describe('countActiveFilters', () => {
+  it('conta quantos filtros estão em uso', () => {
+    expect(countActiveFilters(EMPTY_FILTERS)).toBe(0);
+    expect(countActiveFilters({ ...EMPTY_FILTERS, serviceName: 'Corte' })).toBe(1);
+    expect(countActiveFilters({ professionalId: 'ana', status: 'PENDING', serviceName: 'Corte' })).toBe(3);
   });
 });
 
