@@ -141,6 +141,18 @@ public class TenantIsolationIntegrationTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
+    void dashboardTeamOnlyListsOwnProfessionals() {
+        ResponseEntity<Map> dashboardB = call(tokenB, HttpMethod.GET, "/api/dashboard/today", null);
+
+        assertThat(dashboardB.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat((List<?>) dashboardB.getBody().get("team")).isEmpty();
+        List<Map<String, Object>> teamA = (List<Map<String, Object>>)
+                call(tokenA, HttpMethod.GET, "/api/dashboard/today", null).getBody().get("team");
+        assertThat(teamA).extracting(member -> member.get("name")).containsExactly("Profissional do A");
+    }
+
+    @Test
     void availabilityRejectsAnotherTenantsProfessional() {
         String serviceB = createAs(tokenB, "/api/services", serviceBody("Corte do B"));
         LocalDate nextMonday = LocalDate.now().with(TemporalAdjusters.next(DayOfWeek.MONDAY));

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatPhone, maskPhone, phoneToApi } from './phone';
+import { formatPhone, maskPhone, phoneToApi, whatsappLink } from './phone';
 
 describe('maskPhone', () => {
   it('formata celular com DDD', () => {
@@ -28,5 +28,19 @@ describe('phoneToApi', () => {
 describe('formatPhone', () => {
   it('mostra o telefone da API no formato brasileiro', () => {
     expect(formatPhone('5586999990000')).toBe('(86) 99999-0000');
+  });
+});
+
+describe('whatsappLink', () => {
+  it('monta o link wa.me com o telefone da API', () => {
+    expect(whatsappLink('5586999990000')).toBe('https://wa.me/5586999990000');
+  });
+
+  it('ignora pontuação', () => {
+    expect(whatsappLink('+55 (86) 99999-0000')).toBe('https://wa.me/5586999990000');
+  });
+
+  it('sem dígitos não há link', () => {
+    expect(whatsappLink('')).toBeNull();
   });
 });

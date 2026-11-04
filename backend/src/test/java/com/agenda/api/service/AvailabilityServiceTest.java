@@ -241,6 +241,18 @@ class AvailabilityServiceTest {
         assertThat(ex.getMessage()).isEqualTo("O horário de início não pode estar no passado.");
     }
 
+    @Test
+    void isWithinWorkingHoursUsesIntersection() {
+        Professional ana = professional("Ana", new BusinessHour(1, LocalTime.of(10, 0), LocalTime.of(14, 0), false));
+        AvailabilityService availability = availability(at(MONDAY, 8, 0));
+
+        assertThat(availability.isWithinWorkingHours(tenant, ana, MONDAY.atTime(9, 59))).isFalse();
+        assertThat(availability.isWithinWorkingHours(tenant, ana, MONDAY.atTime(10, 0))).isTrue();
+        assertThat(availability.isWithinWorkingHours(tenant, ana, MONDAY.atTime(13, 59))).isTrue();
+        assertThat(availability.isWithinWorkingHours(tenant, ana, MONDAY.atTime(14, 0))).isFalse();
+        assertThat(availability.isWithinWorkingHours(tenant, ana, SATURDAY.atTime(11, 0))).isFalse();
+    }
+
     private AvailabilityService availability(Clock clock) {
         return new AvailabilityService(tenantRepository, professionalRepository, serviceRepository, appointmentRepository, clock);
     }

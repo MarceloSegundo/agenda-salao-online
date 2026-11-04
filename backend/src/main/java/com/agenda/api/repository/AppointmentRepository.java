@@ -26,4 +26,9 @@ public interface AppointmentRepository extends TenantScopedRepository<Appointmen
     @Query("SELECT a FROM Appointment a WHERE a.startTime >= :start AND a.startTime < :end "
             + "AND a.status <> com.agenda.api.model.AppointmentStatus.CANCELED")
     List<Appointment> findActiveBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    /** Agendamentos com início em [start, end), em todos os status, já com cliente, serviço e profissional. */
+    @Query("SELECT a FROM Appointment a JOIN FETCH a.customer c JOIN FETCH a.service JOIN FETCH a.professional "
+            + "WHERE a.startTime >= :start AND a.startTime < :end ORDER BY a.startTime ASC, c.name ASC")
+    List<Appointment> findWithDetailsBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 }

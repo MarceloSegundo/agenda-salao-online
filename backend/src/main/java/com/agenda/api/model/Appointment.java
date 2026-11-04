@@ -2,6 +2,7 @@ package com.agenda.api.model;
 
 import com.agenda.api.model.base.BaseTenantEntity;
 import jakarta.persistence.*;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,6 +31,10 @@ public class Appointment extends BaseTenantEntity {
     @Column(nullable = false)
     private AppointmentStatus status = AppointmentStatus.PENDING;
 
+    /** Preço do serviço no momento do agendamento; não muda com reajustes. */
+    @Column(nullable = false, precision = 38, scale = 2)
+    private BigDecimal price;
+
     // Getters and Setters
     public Customer getCustomer() { return customer; }
     public void setCustomer(Customer customer) { this.customer = customer; }
@@ -48,4 +53,7 @@ public class Appointment extends BaseTenantEntity {
     
     public AppointmentStatus getStatus() { return status; }
     public void setStatus(AppointmentStatus status) { this.status = status; }
+
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
 }

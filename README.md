@@ -30,6 +30,7 @@ Visão geral dos componentes e do modelo de domínio: [`docs/wiki/architecture.m
 | Profissionais | `/api/professionals` | JWT |
 | Serviços | `/api/services` | JWT |
 | Agendamentos | `/api/appointments?date=aaaa-mm-dd` (agenda do dia), `/api/appointments/availability` (horários livres) | JWT |
+| Dashboard | `GET /api/dashboard/today` (operação do dia: resumo, próximo atendimento, pendências e equipe) | JWT |
 
 Com o backend rodando, a documentação interativa fica em `http://localhost:8080/swagger-ui.html`.
 
@@ -45,6 +46,16 @@ export JWT_SECRET="uma-chave-aleatoria-com-pelo-menos-32-caracteres"
 ```
 
 `JWT_SECRET` é obrigatório: sem ele a aplicação não sobe. As demais variáveis estão em [`backend/.env.example`](backend/.env.example). O passo a passo completo, incluindo o serviço de WhatsApp, está em [`docs/wiki/getting_started.md`](docs/wiki/getting_started.md).
+
+No Windows, `start_backend.ps1` sobe o banco e o backend carregando o `backend/.env`, e `start_frontend.ps1` sobe o frontend em `http://localhost:5173`.
+
+### Dados de demonstração
+
+Com o banco e o backend no ar, [`seed_demo.ps1`](seed_demo.ps1) cria o salão "Salão Bela Vista" com 6 profissionais, 10 serviços, 120 clientes e cerca de 3 meses de agenda (90 dias para trás e 21 para frente). O login do salão está no topo do script. Rodar de novo recria os dados desse salão.
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\seed_demo.ps1
+```
 
 ## Testes
 

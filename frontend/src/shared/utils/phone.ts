@@ -28,6 +28,12 @@ export function phoneToApi(masked: string): string {
   return COUNTRY_CODE + nationalDigits(masked);
 }
 
+/** Link para conversar no WhatsApp; sem dígitos, não há link. */
+export function whatsappLink(apiPhone: string): string | null {
+  const digits = apiPhone.replace(/\D/g, '');
+  return digits ? `https://wa.me/${digits}` : null;
+}
+
 /** Telefone vindo da API para exibição: "5586999990000" vira "(86) 99999-0000". */
 export function formatPhone(apiPhone: string): string {
   return maskPhone(apiPhone);

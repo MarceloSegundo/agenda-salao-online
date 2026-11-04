@@ -69,6 +69,7 @@ public class AppointmentService {
         appointment.setStartTime(startTime);
         appointment.setEndTime(endTime);
         appointment.setStatus(AppointmentStatus.PENDING);
+        appointment.setPrice(service.getPrice());
         // Tenant is automatically set by the BaseTenantEntity listener
 
         appointment = appointmentRepository.save(appointment);

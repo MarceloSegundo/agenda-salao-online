@@ -6,8 +6,8 @@ Este documento resume o estado atual do projeto **Agenda Salão Online** para se
 A aplicação é um sistema de agendamento para salões de beleza em modelo **SaaS Multi-Tenant**. Cada salão que se cadastra ganha seu próprio isolamento de dados (Tenant). O objetivo principal é que o dono do salão possa se cadastrar, gerenciar profissionais, serviços e clientes, e registrar agendamentos.
 
 ## 2. Stack Tecnológica Atual
-- **Backend:** Java 25, Spring Boot 3.4.1, Maven.
-- **Banco de Dados:** PostgreSQL 15 (rodando via Docker Compose no localhost:5432).
+- **Backend:** Java 21+, Spring Boot 3.4.1, Maven.
+- **Banco de Dados:** PostgreSQL 15 (rodando via Docker Compose no localhost:5432). Schema versionado com **Flyway** (`backend/src/main/resources/db/migration`, V1–V3); os testes usam H2 em modo PostgreSQL com as mesmas migrações.
 - **Autenticação:** JWT (JSON Web Token) sem estado.
 - **Testes da API:** Script PowerShell (`test_api.ps1`) que valida o fluxo E2E (Cadastro, Login e CRUDs).
 
@@ -25,20 +25,22 @@ As seguintes rotas base estão configuradas em `http://localhost:8080/api`:
 | :--- | :--- | :--- | :--- |
 | **Tenant** | Cadastro de um novo salão e usuário admin | `POST /tenants/register` | Não |
 | **Auth** | Login no sistema para obter o token JWT | `POST /auth/login` | Não |
-| **Customer** | Gestão de clientes do salão | `POST /customers`, `GET /customers/{id}` | Sim (JWT) |
-| **Professional** | Gestão de profissionais (barbeiros, manicures, etc) | `POST /professionals`, `GET /professionals/{id}` | Sim (JWT) |
-| **Service** | Gestão de serviços prestados e preços | `POST /services`, `GET /services/{id}` | Sim (JWT) |
-| **Appointment** | Criação e consulta de agendamentos | `POST /appointments` | Sim (JWT) |
+| **Customer** | Clientes (busca com `?search=`, telefone único por salão) | `/customers` | Sim (JWT) |
+| **Professional** | Profissionais e horário próprio por dia | `/professionals` | Sim (JWT) |
+| **Service** | Serviços, preços e duração | `/services` | Sim (JWT) |
+| **Appointment** | Agenda do dia, horários livres, criação com trava e troca de status | `/appointments?date=`, `/appointments/availability`, `PATCH /appointments/{id}/status` | Sim (JWT) |
+| **Dashboard** | Operação do dia: resumo com R$, próximo atendimento, pendências e equipe | `GET /dashboard/today` | Sim (JWT) |
 
-## 5. Próximos Passos (Foco no Frontend)
-A API já está pronta, validada e servindo dados corretamente. Os próximos objetivos para o frontend devem abranger (A maior parte já está em andamento/concluída):
-1. **Página de Landing/Cadastro:** Onde um dono de salão fará o seu registro (consumindo `POST /tenants/register`). *(Concluído)*
-2. **Página de Login:** Para autenticação e armazenamento do token JWT localmente. *(Concluído)*
-3. **Painel do Salão (AppLayout):** Consumindo as rotas autenticadas enviando o header `Authorization: Bearer <token>`. A navegação funciona via Bottom Tab Bar dentro do caminho `/app`:
-   - `/app` - Dashboard Principal
-   - `/app/agenda` - Calendário para Agendamentos.
-   - `/app/clientes` - Cadastrar/Listar Clientes.
-   - `/app/configuracoes` - Cadastrar/Listar Profissionais e Serviços.
+O agendamento guarda o preço do serviço no momento da criação (`appointments.price`, migração V3): reajustar o serviço não muda o histórico.
+
+## 5. Estado do Frontend
+Todas as abas do painel (`/app`, Bottom Tab Bar) estão implementadas com dados reais:
+- `/app` - **Dashboard** da operação do dia: próximo atendimento (Confirmar, Concluir, WhatsApp), resumo com previsto e realizado, pendências (a confirmar e atrasadas) e equipe (livre, atendendo, fora). Recarrega a cada 60 s.
+- `/app/agenda` - Agenda por dia, troca de status e novo agendamento em etapas (cliente, serviço, profissional ou "qualquer", dia e horário livre). Aceita `?data=aaaa-mm-dd` para abrir num dia.
+- `/app/clientes` - Lista, busca, cadastro e edição de clientes.
+- `/app/configuracoes` - Serviços, equipe, horários de funcionamento e dados do salão.
+
+Specs e planos de cada entrega ficam em `docs/superpowers/`. Próximos passos e débitos: `docs/wiki/future_improvements.md` e `docs/wiki/technical_debt.md`.
 
 ## 6. Decisões de Design e UI (Frontend)
 - **Soft Delete:** A exclusão de Profissionais e Serviços é feita através da inativação (`active = false`), com uma opção na interface (checkbox) para visualizar ou ocultar os registros desativados.
